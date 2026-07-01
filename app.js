@@ -132,7 +132,7 @@ function updateStats() {
   const words = text.trim() ? text.trim().split(/\s+/).length : 0;
   statusStatsEl.textContent = `${words} words · ${text.length} chars · ${text.split('\n').length} lines`;
   statusFileEl.textContent = tab.fileName + (tab.handle ? '' : ' (unsaved)');
-  document.title = `${tab.dirty ? '● ' : ''}${tab.fileName} — Markdown Editor ${APP_VERSION}`;
+  document.title = `${tab.fileName} — Markdown Editor ${APP_VERSION}`;
 }
 
 /* ---------- Tabs ---------- */
