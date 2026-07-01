@@ -1,0 +1,28 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Markdown Editor">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5a98ff"/>
+      <stop offset="100%" stop-color="#2868d8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background (≈22% corner radius — modern Windows app feel) -->
+  <rect width="1024" height="1024" rx="224" fill="url(#bg)"/>
+
+  <!-- Mark: stylised "M↓" centred. Block-letter M (two legs + inverted-V peak)
+       on the left, downward arrow on the right — same visual language as the
+       standard Markdown logo. -->
+  <g fill="#ffffff">
+    <!-- M, left leg -->
+    <rect x="180" y="280" width="100" height="460" rx="6"/>
+    <!-- M, right leg -->
+    <rect x="500" y="280" width="100" height="460" rx="6"/>
+    <!-- M, centre peak (inverted-V, apex points down) -->
+    <polygon points="280,280 500,280 390,490"/>
+
+    <!-- Down arrow, shaft -->
+    <rect x="700" y="280" width="100" height="320" rx="6"/>
+    <!-- Down arrow, head -->
+    <polygon points="620,600 880,600 750,740"/>
+  </g>
+</svg>

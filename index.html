@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Markdown Editor</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/dialog/dialog.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="theme-light view-split">
+  <div id="tab-bar">
+    <button id="menu-btn" title="Menu" aria-label="Open menu">
+      <svg viewBox="0 0 16 16" width="14" height="14"><path fill="currentColor" d="M2 4h12v1.4H2zm0 3.3h12v1.4H2zm0 3.3h12V12H2z"/></svg>
+    </button>
+    <div id="tabs" role="tablist"></div>
+    <button id="new-tab-btn" title="New tab (Ctrl+N)" aria-label="New tab">+</button>
+    <div id="tab-bar-spacer"></div>
+    <div id="view-toggle" role="group" aria-label="View mode">
+      <button data-view="editor" title="Editor only (Ctrl+1)" aria-label="Editor only">
+        <svg viewBox="0 0 16 16" width="14" height="14"><path fill="currentColor" d="M2 3h12v1H2zm0 3h12v1H2zm0 3h8v1H2zm0 3h10v1H2z"/></svg>
+      </button>
+      <button data-view="split" class="active" title="Split view (Ctrl+2)" aria-label="Split view">
+        <svg viewBox="0 0 16 16" width="14" height="14"><path fill="none" stroke="currentColor" d="M1.5 2.5h13v11h-13zM8 2.5v11"/></svg>
+      </button>
+      <button data-view="preview" title="Preview only (Ctrl+3)" aria-label="Preview only">
+        <svg viewBox="0 0 16 16" width="14" height="14"><path fill="currentColor" d="M8 3C4.5 3 1.7 5.2.5 8c1.2 2.8 4 5 7.5 5s6.3-2.2 7.5-5C14.3 5.2 11.5 3 8 3zm0 8.5A3.5 3.5 0 1 1 8 4.5a3.5 3.5 0 0 1 0 7zm0-1.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Dropdown menu (shown when #menu-btn is clicked) -->
+  <div id="app-menu" hidden role="menu">
+    <button data-cmd="new-tab"        role="menuitem"><span>New Tab</span>       <kbd>Ctrl+N</kbd></button>
+    <button data-cmd="open"           role="menuitem"><span>Open File…</span>    <kbd>Ctrl+O</kbd></button>
+    <button data-cmd="open-folder"    role="menuitem"><span>Open Folder…</span>  <kbd>Ctrl+K</kbd></button>
+    <div class="menu-sep"></div>
+    <div class="menu-heading">Recent Files</div>
+    <div id="recent-menu"><button class="disabled" disabled>(none)</button></div>
+    <div class="menu-sep"></div>
+    <button data-cmd="save"           role="menuitem"><span>Save</span>          <kbd>Ctrl+S</kbd></button>
+    <button data-cmd="save-as"        role="menuitem"><span>Save As…</span>      <kbd>Ctrl+Shift+S</kbd></button>
+    <div class="menu-sep"></div>
+    <button data-cmd="export-html"    role="menuitem"><span>Export as HTML…</span></button>
+    <button data-cmd="export-pdf"     role="menuitem"><span>Export as PDF…</span></button>
+    <div class="menu-sep"></div>
+    <button data-cmd="close-tab"      role="menuitem"><span>Close Tab</span>     <kbd>Ctrl+W</kbd></button>
+    <div class="menu-sep"></div>
+    <button data-cmd="toggle-sidebar" role="menuitem"><span>Toggle Sidebar</span><kbd>Ctrl+B</kbd></button>
+    <button data-cmd="toggle-theme"   role="menuitem"><span>Toggle Dark Mode</span><kbd>Ctrl+D</kbd></button>
+  </div>
+
+  <div id="workspace">
+    <aside id="sidebar" aria-label="File tree">
+      <div id="sidebar-header">
+        <span id="sidebar-title" title="">Files</span>
+        <button id="sidebar-open-folder" title="Open folder (Ctrl+K)" aria-label="Open folder">
+          <svg viewBox="0 0 16 16" width="13" height="13"><path fill="currentColor" d="M1.5 3h4l1 1.5h8a1 1 0 0 1 1 1V13a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/></svg>
+        </button>
+        <button id="sidebar-refresh" title="Refresh" aria-label="Refresh tree">
+          <svg viewBox="0 0 16 16" width="13" height="13"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M13.5 4a6 6 0 1 0 1.5 5"/><path fill="currentColor" d="M14 1v4h-4z"/></svg>
+        </button>
+      </div>
+      <div id="sidebar-body">
+        <div id="sidebar-empty">
+          <p>No folder open</p>
+          <button id="sidebar-empty-btn">Open Folder…</button>
+        </div>
+        <ul id="file-tree" hidden></ul>
+      </div>
+    </aside>
+    <div id="editor-pane">
+      <textarea id="editor"></textarea>
+    </div>
+    <div id="splitter" aria-hidden="true"></div>
+    <div id="preview-pane">
+      <article id="preview" class="markdown-body"></article>
+    </div>
+  </div>
+
+  <div id="confirm-dialog" hidden role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div id="confirm-backdrop"></div>
+    <div id="confirm-panel">
+      <h3 id="confirm-title"></h3>
+      <p id="confirm-message"></p>
+      <p id="confirm-detail"></p>
+      <div id="confirm-buttons"></div>
+    </div>
+  </div>
+
+  <!-- Warning banner for unsupported browsers (no File System Access API) -->
+  <div id="unsupported-banner" hidden>
+    <strong>Limited browser support.</strong>
+    Your browser doesn't support the File System Access API — Open/Save fall back to
+    upload / download. Use Chrome or Edge for a proper experience.
+    <button id="unsupported-close" aria-label="Dismiss">&times;</button>
+  </div>
+
+  <div id="status-bar">
+    <span id="status-file">Untitled</span>
+    <span id="status-stats"></span>
+    <span id="status-mode">Markdown</span>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/markdown/markdown.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/xml/xml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/css/css.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/shell/shell.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/yaml/yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/mode/overlay.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/gfm/gfm.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/edit/continuelist.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/dialog/dialog.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/search/searchcursor.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/search/search.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
