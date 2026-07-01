@@ -84,6 +84,7 @@ const menuEl = document.getElementById('app-menu');
 const recentMenuEl = document.getElementById('recent-menu');
 const vtabsListEl = document.getElementById('vtabs-list');
 const toggleVtabsLabel = document.getElementById('toggle-vtabs-label');
+const toggleWelcomeLabel = document.getElementById('toggle-welcome-label');
 
 /* ---------- Editor ---------- */
 const editor = CodeMirror.fromTextArea(editorEl, {
@@ -137,7 +138,7 @@ function updateStats() {
 /* ---------- Tabs ---------- */
 function getActive() { return tabs.find(t => t.id === activeTabId) || null; }
 
-function newTab({ handle = null, content = '', fileName = null, savedContent = null } = {}) {
+function newTab({ handle = null, content = '', fileName = null, savedContent = null, isWelcome = false } = {}) {
   const tab = {
     id: nextId++,
     handle,
@@ -145,7 +146,8 @@ function newTab({ handle = null, content = '', fileName = null, savedContent = n
     doc: content,
     lastSavedDoc: savedContent ?? (handle ? content : null),
     dirty: false,
-    scrollPos: null
+    scrollPos: null,
+    isWelcome
   };
   tabs.push(tab);
   setActiveTab(tab.id);
@@ -197,6 +199,7 @@ async function closeTab(id) {
 function renderTabs() {
   renderTabsInto(tabsEl, 'tab');
   renderTabsInto(vtabsListEl, 'vtab');
+  refreshWelcomeMenuLabel();
 }
 
 function renderTabsInto(container, prefix) {
@@ -491,6 +494,22 @@ function refreshVtabsMenuLabel() {
   toggleVtabsLabel.textContent = on ? '✓ Vertical Tabs' : 'Vertical Tabs';
 }
 
+function findWelcomeTab() { return tabs.find(t => t.isWelcome); }
+
+function refreshWelcomeMenuLabel() {
+  toggleWelcomeLabel.textContent = findWelcomeTab() ? '✓ Welcome' : 'Welcome';
+}
+
+async function toggleWelcome() {
+  const existing = findWelcomeTab();
+  if (existing) {
+    await closeTab(existing.id);
+  } else {
+    newTab({ content: DEFAULT_DOC, fileName: 'Welcome', isWelcome: true });
+  }
+  refreshWelcomeMenuLabel();
+}
+
 document.getElementById('vtabs-new').addEventListener('click', () => newTab());
 
 /* ---------- View modes ---------- */
@@ -698,6 +717,7 @@ async function dispatchCommand(cmd) {
     case 'close-tab':      if (tab) closeTab(tab.id); break;
     case 'toggle-vtabs':   await toggleVerticalTabs(); break;
     case 'toggle-theme':   toggleTheme(); break;
+    case 'toggle-welcome': await toggleWelcome(); break;
     case 'find':           editor.execCommand('find'); break;
     case 'view-editor':    setViewMode('editor'); break;
     case 'view-split':     setViewMode('split'); break;
@@ -750,7 +770,7 @@ async function bootstrap() {
     if (viewMode && viewMode !== 'split') setViewMode(viewMode);
   } catch { /* IndexedDB unavailable — private browsing? — proceed without persistence. */ }
 
-  newTab({ content: DEFAULT_DOC, fileName: 'Welcome' });
+  newTab();
   refreshRecentMenu();
 }
 
