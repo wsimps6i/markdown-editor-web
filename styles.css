@@ -116,8 +116,8 @@ body {
   gap: 6px;
   padding: 0 10px 0 12px;
   height: var(--tab-bar-h);
-  min-width: 120px;
-  max-width: 220px;
+  min-width: 160px;
+  max-width: 280px;
   background: transparent;
   border-right: 1px solid var(--border);
   cursor: pointer;
