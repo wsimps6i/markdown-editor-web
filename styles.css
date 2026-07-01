@@ -141,11 +141,20 @@ body {
   text-overflow: ellipsis;
   font-weight: 400;
 }
-.tab.dirty .tab-title::before {
-  content: "● ";
-  color: var(--accent);
-  font-size: 9px;
-  vertical-align: middle;
+/* Dirty indicator sits on the tab's left edge — half in, half out — bigger and
+   orange so unsaved changes are impossible to miss. */
+.tab.dirty::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  background: #f59e0b;
+  border-radius: 50%;
+  z-index: 1;
+  pointer-events: none;
 }
 .tab .tab-close {
   width: 18px;
@@ -352,6 +361,7 @@ body.tabs-vertical #vtabs-column { display: flex; }
   font-size: 12.5px;
   min-height: 30px;
   user-select: none;
+  position: relative;
 }
 .vtab:hover { background: var(--bg-hover); color: var(--fg); }
 .vtab.active {
@@ -365,11 +375,18 @@ body.tabs-vertical #vtabs-column { display: flex; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.vtab.dirty .vtab-title::before {
-  content: "● ";
-  color: var(--accent);
-  font-size: 9px;
-  vertical-align: middle;
+.vtab.dirty::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  background: #f59e0b;
+  border-radius: 50%;
+  z-index: 1;
+  pointer-events: none;
 }
 .vtab .vtab-close {
   width: 18px; height: 18px;
