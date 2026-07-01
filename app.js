@@ -756,6 +756,7 @@ window.addEventListener('keydown', (e) => {
     let cmd = null;
     if      (key === 'n') cmd = 'new-tab';
     else if (key === 'w') cmd = 'close-tab';
+    else if (key === 'h') cmd = 'toggle-help';
     if (cmd) { e.preventDefault(); dispatchCommand(cmd); return; }
   }
 
@@ -765,7 +766,6 @@ window.addEventListener('keydown', (e) => {
   else if (key === 's' && !shift) cmd = 'save';
   else if (key === 's' && shift)  cmd = 'save-as';
   else if (key === 'b' && !shift) cmd = 'toggle-vtabs';
-  else if (key === 'h' && shift)  cmd = 'toggle-help';
   else if (key === 'd' && !shift) cmd = 'toggle-theme';
   else if (key === '1') cmd = 'view-editor';
   else if (key === '2') cmd = 'view-split';
