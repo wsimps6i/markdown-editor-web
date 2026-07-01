@@ -59,6 +59,7 @@ function greet(name) {
 | Save / Save As        | \`Ctrl+S\` / \`Ctrl+Shift+S\` |
 | Close tab             | \`Ctrl+W\`         |
 | Toggle sidebar        | \`Ctrl+B\`         |
+| Toggle vertical tabs  | \`Ctrl+Shift+B\`   |
 | Editor / Split / Preview | \`Ctrl+1\` / \`2\` / \`3\` |
 | Dark mode             | \`Ctrl+D\`         |
 
@@ -91,6 +92,8 @@ const splitter = document.getElementById('splitter');
 const menuBtn = document.getElementById('menu-btn');
 const menuEl = document.getElementById('app-menu');
 const recentMenuEl = document.getElementById('recent-menu');
+const vtabsListEl = document.getElementById('vtabs-list');
+const toggleVtabsLabel = document.getElementById('toggle-vtabs-label');
 
 /* ---------- Editor ---------- */
 const editor = CodeMirror.fromTextArea(editorEl, {
@@ -203,20 +206,25 @@ async function closeTab(id) {
 }
 
 function renderTabs() {
-  tabsEl.innerHTML = '';
+  renderTabsInto(tabsEl, 'tab');
+  renderTabsInto(vtabsListEl, 'vtab');
+}
+
+function renderTabsInto(container, prefix) {
+  container.innerHTML = '';
   for (const tab of tabs) {
     const el = document.createElement('div');
-    el.className = 'tab' + (tab.id === activeTabId ? ' active' : '') + (tab.dirty ? ' dirty' : '');
+    el.className = prefix + (tab.id === activeTabId ? ' active' : '') + (tab.dirty ? ' dirty' : '');
     el.setAttribute('role', 'tab');
     el.title = tab.fileName;
 
     const title = document.createElement('span');
-    title.className = 'tab-title';
+    title.className = `${prefix}-title`;
     title.textContent = tab.fileName;
     el.appendChild(title);
 
     const close = document.createElement('button');
-    close.className = 'tab-close';
+    close.className = `${prefix}-close`;
     close.innerHTML = '&times;';
     close.title = 'Close';
     close.addEventListener('click', (e) => { e.stopPropagation(); closeTab(tab.id); });
@@ -226,7 +234,7 @@ function renderTabs() {
     el.addEventListener('mousedown', (e) => {
       if (e.button === 1) { e.preventDefault(); closeTab(tab.id); }
     });
-    tabsEl.appendChild(el);
+    container.appendChild(el);
   }
 }
 
@@ -624,9 +632,23 @@ async function toggleSidebar() {
   requestAnimationFrame(() => editor.refresh());
 }
 
+async function toggleVerticalTabs() {
+  const on = document.body.classList.toggle('tabs-vertical');
+  await dbSet('kv', 'tabsVertical', on);
+  refreshVtabsMenuLabel();
+  workspace.style.gridTemplateColumns = '';
+  requestAnimationFrame(() => editor.refresh());
+}
+
+function refreshVtabsMenuLabel() {
+  const on = document.body.classList.contains('tabs-vertical');
+  toggleVtabsLabel.textContent = on ? '✓ Vertical Tabs' : 'Vertical Tabs';
+}
+
 document.getElementById('sidebar-open-folder').addEventListener('click', openFolder);
 document.getElementById('sidebar-empty-btn').addEventListener('click', openFolder);
 document.getElementById('sidebar-refresh').addEventListener('click', refreshFolder);
+document.getElementById('vtabs-new').addEventListener('click', () => newTab());
 
 /* ---------- View modes ---------- */
 function setViewMode(mode) {
@@ -669,14 +691,20 @@ splitter.addEventListener('mousedown', (e) => {
 window.addEventListener('mousemove', (e) => {
   if (!dragging) return;
   const rect = workspace.getBoundingClientRect();
+  const cs = getComputedStyle(document.documentElement);
   const sidebarHidden = document.body.classList.contains('sidebar-hidden');
-  const sidebarW = sidebarHidden ? 0 : parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar-w')) || 240;
-  const usable = rect.width - sidebarW;
-  const localX = e.clientX - rect.left - sidebarW;
+  const vtabsOn = document.body.classList.contains('tabs-vertical');
+  const sidebarW = sidebarHidden ? 0 : (parseInt(cs.getPropertyValue('--sidebar-w')) || 240);
+  const vtabsW = vtabsOn ? (parseInt(cs.getPropertyValue('--vtabs-w')) || 200) : 0;
+  const fixed = sidebarW + vtabsW;
+  const usable = rect.width - fixed;
+  const localX = e.clientX - rect.left - fixed;
   const ratio = Math.max(0.15, Math.min(0.85, localX / usable));
-  workspace.style.gridTemplateColumns = sidebarHidden
-    ? `${ratio}fr 1px ${1 - ratio}fr`
-    : `var(--sidebar-w) ${ratio}fr 1px ${1 - ratio}fr`;
+  const prefix = [
+    vtabsOn ? 'var(--vtabs-w)' : null,
+    sidebarHidden ? null : 'var(--sidebar-w)'
+  ].filter(Boolean).join(' ');
+  workspace.style.gridTemplateColumns = `${prefix ? prefix + ' ' : ''}${ratio}fr 1px ${1 - ratio}fr`;
   editor.refresh();
 });
 window.addEventListener('mouseup', () => {
@@ -831,6 +859,7 @@ async function dispatchCommand(cmd) {
     case 'export-pdf':     exportPdf(); break;
     case 'close-tab':      if (tab) closeTab(tab.id); break;
     case 'toggle-sidebar': await toggleSidebar(); break;
+    case 'toggle-vtabs':   await toggleVerticalTabs(); break;
     case 'toggle-theme':   toggleTheme(); break;
     case 'find':           editor.execCommand('find'); break;
     case 'view-editor':    setViewMode('editor'); break;
@@ -852,6 +881,7 @@ window.addEventListener('keydown', (e) => {
   else if (key === 's' && shift)  cmd = 'save-as';
   else if (key === 'w' && !shift) cmd = 'close-tab';
   else if (key === 'b' && !shift) cmd = 'toggle-sidebar';
+  else if (key === 'b' && shift)  cmd = 'toggle-vtabs';
   else if (key === 'd' && !shift) cmd = 'toggle-theme';
   else if (key === '1') cmd = 'view-editor';
   else if (key === '2') cmd = 'view-split';
@@ -880,6 +910,9 @@ async function bootstrap() {
   try {
     const sidebarHidden = await dbGet('kv', 'sidebarHidden');
     if (sidebarHidden === true) document.body.classList.add('sidebar-hidden');
+    const tabsVertical = await dbGet('kv', 'tabsVertical');
+    if (tabsVertical === true) document.body.classList.add('tabs-vertical');
+    refreshVtabsMenuLabel();
     const viewMode = await dbGet('kv', 'viewMode');
     if (viewMode && viewMode !== 'split') setViewMode(viewMode);
     // Try to restore last folder (permission is not persisted; user must re-grant on click).

@@ -30,6 +30,7 @@
   --tab-bar-h: 38px;
   --status-bar-h: 24px;
   --sidebar-w: 240px;
+  --vtabs-w: 200px;
 }
 
 body.theme-dark {
@@ -265,25 +266,134 @@ body {
 }
 #recent-menu button > span { direction: rtl; text-align: left; }
 
-/* ---------- Workspace ---------- */
+/* ---------- Workspace ----------
+   Grid track count must match the number of visible children (display:none
+   removes items from grid auto-placement). So we enumerate every combo of:
+     view-mode  × sidebar-visible × vtabs-visible.
+   Children (in DOM order): #vtabs-column, #sidebar, #editor-pane, #splitter, #preview-pane. */
 #workspace {
   display: grid;
   grid-template-columns: var(--sidebar-w) 1fr 1px 1fr;
   overflow: hidden;
   min-height: 0;
 }
-body.sidebar-hidden #workspace { grid-template-columns: 1fr 1px 1fr; }
-body.sidebar-hidden #sidebar { display: none; }
 
-body.view-editor #workspace                 { grid-template-columns: var(--sidebar-w) 1fr; }
-body.view-editor.sidebar-hidden #workspace  { grid-template-columns: 1fr; }
+/* Vertical tabs OFF (default) */
+body.sidebar-hidden #workspace                { grid-template-columns: 1fr 1px 1fr; }
+body.sidebar-hidden #sidebar                  { display: none; }
+body.view-editor #workspace                   { grid-template-columns: var(--sidebar-w) 1fr; }
+body.view-editor.sidebar-hidden #workspace    { grid-template-columns: 1fr; }
+body.view-preview #workspace                  { grid-template-columns: var(--sidebar-w) 1fr; }
+body.view-preview.sidebar-hidden #workspace   { grid-template-columns: 1fr; }
+
+/* Vertical tabs ON — prepend a --vtabs-w track */
+body.tabs-vertical #workspace                                { grid-template-columns: var(--vtabs-w) var(--sidebar-w) 1fr 1px 1fr; }
+body.tabs-vertical.sidebar-hidden #workspace                 { grid-template-columns: var(--vtabs-w) 1fr 1px 1fr; }
+body.tabs-vertical.view-editor #workspace                    { grid-template-columns: var(--vtabs-w) var(--sidebar-w) 1fr; }
+body.tabs-vertical.view-editor.sidebar-hidden #workspace     { grid-template-columns: var(--vtabs-w) 1fr; }
+body.tabs-vertical.view-preview #workspace                   { grid-template-columns: var(--vtabs-w) var(--sidebar-w) 1fr; }
+body.tabs-vertical.view-preview.sidebar-hidden #workspace    { grid-template-columns: var(--vtabs-w) 1fr; }
+
 body.view-editor #splitter,
 body.view-editor #preview-pane { display: none; }
-
-body.view-preview #workspace                { grid-template-columns: var(--sidebar-w) 1fr; }
-body.view-preview.sidebar-hidden #workspace { grid-template-columns: 1fr; }
 body.view-preview #splitter,
 body.view-preview #editor-pane { display: none; }
+
+/* Hide the horizontal tab strip and its + button when vertical tabs are on
+   (menu button and view toggle stay in the top bar as a slim toolbar). */
+body.tabs-vertical #tabs,
+body.tabs-vertical #new-tab-btn { display: none; }
+
+/* ---------- Vertical tab column ---------- */
+#vtabs-column {
+  display: none;
+  background: var(--bg-soft);
+  border-right: 1px solid var(--border);
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+body.tabs-vertical #vtabs-column { display: flex; }
+
+#vtabs-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px 6px 12px;
+  border-bottom: 1px solid var(--border);
+  height: 32px;
+  flex-shrink: 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-soft);
+}
+#vtabs-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#vtabs-new {
+  width: 22px; height: 22px;
+  background: transparent; border: none; border-radius: 3px;
+  color: var(--fg-soft); cursor: pointer;
+  font-size: 14px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+#vtabs-new:hover { background: var(--bg-hover); color: var(--fg); }
+
+#vtabs-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 0;
+}
+
+.vtab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 6px 10px;
+  cursor: pointer;
+  color: var(--fg-soft);
+  border-left: 2px solid transparent;
+  font-size: 12.5px;
+  min-height: 30px;
+  user-select: none;
+}
+.vtab:hover { background: var(--bg-hover); color: var(--fg); }
+.vtab.active {
+  background: var(--bg-tab-active);
+  color: var(--fg);
+  border-left-color: var(--accent);
+}
+.vtab .vtab-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vtab.dirty .vtab-title::before {
+  content: "● ";
+  color: var(--accent);
+  font-size: 9px;
+  vertical-align: middle;
+}
+.vtab .vtab-close {
+  width: 18px; height: 18px;
+  border: none;
+  background: transparent;
+  color: var(--fg-muted);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.vtab:hover .vtab-close,
+.vtab.active .vtab-close { opacity: 1; }
+.vtab .vtab-close:hover { background: var(--bg-hover); color: var(--fg); }
 
 /* ---------- Sidebar ---------- */
 #sidebar {

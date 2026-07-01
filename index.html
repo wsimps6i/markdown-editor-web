@@ -49,10 +49,18 @@
     <button data-cmd="close-tab"      role="menuitem"><span>Close Tab</span>     <kbd>Ctrl+W</kbd></button>
     <div class="menu-sep"></div>
     <button data-cmd="toggle-sidebar" role="menuitem"><span>Toggle Sidebar</span><kbd>Ctrl+B</kbd></button>
+    <button data-cmd="toggle-vtabs"   role="menuitem"><span id="toggle-vtabs-label">Vertical Tabs</span><kbd>Ctrl+Shift+B</kbd></button>
     <button data-cmd="toggle-theme"   role="menuitem"><span>Toggle Dark Mode</span><kbd>Ctrl+D</kbd></button>
   </div>
 
   <div id="workspace">
+    <aside id="vtabs-column" aria-label="Open tabs">
+      <div id="vtabs-header">
+        <span id="vtabs-title">Tabs</span>
+        <button id="vtabs-new" title="New tab (Ctrl+N)" aria-label="New tab">+</button>
+      </div>
+      <div id="vtabs-list" role="tablist"></div>
+    </aside>
     <aside id="sidebar" aria-label="File tree">
       <div id="sidebar-header">
         <span id="sidebar-title" title="">Files</span>
