@@ -684,16 +684,39 @@ async function exportHtml() {
 }
 
 function exportPdf() {
-  // Browser's native print → "Save as PDF". Uses the @media print styles in styles.css.
+  // Browser's native print → "Save as PDF". Uses a hidden iframe so no
+  // new browser tab is spawned.
   const html = buildExportHtml();
   if (!html) return;
-  const w = window.open('', '_blank');
-  if (!w) { alert('Popup blocked — allow popups to export PDF.'); return; }
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-  // Give the popup a moment to render before printing.
-  w.onload = () => setTimeout(() => { w.focus(); w.print(); }, 200);
+
+  const iframe = document.createElement('iframe');
+  Object.assign(iframe.style, {
+    position: 'fixed', right: '0', bottom: '0',
+    width: '0', height: '0', border: 'none', visibility: 'hidden'
+  });
+  document.body.appendChild(iframe);
+
+  const idoc = iframe.contentDocument || iframe.contentWindow.document;
+  idoc.open();
+  idoc.write(html);
+  idoc.close();
+
+  const doPrint = () => {
+    try {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    } catch (err) {
+      alert(`PDF export failed: ${err.message}`);
+    }
+    // Remove the iframe once the print dialog has closed. print() is synchronous
+    // in Chromium — it returns after the user saves or cancels — but leave a
+    // small grace window so the browser can finish streaming to disk.
+    setTimeout(() => iframe.remove(), 1000);
+  };
+
+  // Wait for the iframe's stylesheet/fonts to settle before printing.
+  if (iframe.contentDocument.readyState === 'complete') setTimeout(doPrint, 100);
+  else iframe.onload = () => setTimeout(doPrint, 100);
 }
 
 /* ---------- Menu bar ---------- */
