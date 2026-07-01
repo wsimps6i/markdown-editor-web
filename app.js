@@ -53,10 +53,10 @@ function greet(name) {
 
 | Action                | Shortcut         |
 | --------------------- | ---------------- |
-| New tab               | \`Ctrl+N\`         |
+| New tab               | \`Alt+N\`          |
 | Open file             | \`Ctrl+O\`         |
 | Save / Save As        | \`Ctrl+S\` / \`Ctrl+Shift+S\` |
-| Close tab             | \`Ctrl+W\`         |
+| Close tab             | \`Alt+W\`          |
 | Vertical tabs         | \`Ctrl+B\`         |
 | Editor / Split / Preview | \`Ctrl+1\` / \`2\` / \`3\` |
 | Dark mode             | \`Ctrl+D\`         |
@@ -745,15 +745,25 @@ async function dispatchCommand(cmd) {
 
 /* ---------- Keyboard shortcuts ---------- */
 window.addEventListener('keydown', (e) => {
-  if (!(e.ctrlKey || e.metaKey)) return;
   const key = e.key.toLowerCase();
   const shift = e.shiftKey;
+  const alt = e.altKey;
+  const ctrl = e.ctrlKey || e.metaKey;
+
+  // Alt-based fallbacks for the shortcuts the browser reserves at OS level
+  // (Ctrl+N / Ctrl+T / Ctrl+W). preventDefault has no effect on those.
+  if (alt && !ctrl && !shift) {
+    let cmd = null;
+    if      (key === 'n') cmd = 'new-tab';
+    else if (key === 'w') cmd = 'close-tab';
+    if (cmd) { e.preventDefault(); dispatchCommand(cmd); return; }
+  }
+
+  if (!ctrl) return;
   let cmd = null;
-  if      (key === 'n' && !shift) cmd = 'new-tab';
-  else if (key === 'o' && !shift) cmd = 'open';
+  if      (key === 'o' && !shift) cmd = 'open';
   else if (key === 's' && !shift) cmd = 'save';
   else if (key === 's' && shift)  cmd = 'save-as';
-  else if (key === 'w' && !shift) cmd = 'close-tab';
   else if (key === 'b' && !shift) cmd = 'toggle-vtabs';
   else if (key === 'h' && shift)  cmd = 'toggle-help';
   else if (key === 'd' && !shift) cmd = 'toggle-theme';

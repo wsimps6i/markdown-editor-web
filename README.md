@@ -39,11 +39,11 @@ Push to `main`, enable GitHub Pages with source = "Deploy from a branch" pointin
 
 | Action                       | Shortcut             |
 | ---------------------------- | -------------------- |
-| New tab                      | `Ctrl+N`             |
+| New tab                      | `Alt+N`              |
 | Open file                    | `Ctrl+O`             |
 | Save                         | `Ctrl+S`             |
 | Save As                      | `Ctrl+Shift+S`       |
-| Close tab                    | `Ctrl+W`             |
+| Close tab                    | `Alt+W`              |
 | Find in editor               | `Ctrl+F`             |
 | Vertical tabs                | `Ctrl+B`             |
 | Editor / Split / Preview     | `Ctrl+1` / `2` / `3` |

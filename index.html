@@ -16,7 +16,7 @@
       <svg viewBox="0 0 16 16" width="14" height="14"><path fill="currentColor" d="M2 4h12v1.4H2zm0 3.3h12v1.4H2zm0 3.3h12V12H2z"/></svg>
     </button>
     <div id="tabs" role="tablist"></div>
-    <button id="new-tab-btn" title="New tab (Ctrl+N)" aria-label="New tab">+</button>
+    <button id="new-tab-btn" title="New tab (Alt+N)" aria-label="New tab">+</button>
     <div id="tab-bar-spacer"></div>
     <div id="view-toggle" role="group" aria-label="View mode">
       <button data-view="editor" title="Editor only (Ctrl+1)" aria-label="Editor only">
@@ -33,7 +33,7 @@
 
   <!-- Dropdown menu (shown when #menu-btn is clicked) -->
   <div id="app-menu" hidden role="menu">
-    <button data-cmd="new-tab"        role="menuitem"><span>New Tab</span>       <kbd>Ctrl+N</kbd></button>
+    <button data-cmd="new-tab"        role="menuitem"><span>New Tab</span>       <kbd>Alt+N</kbd></button>
     <button data-cmd="open"           role="menuitem"><span>Open File…</span>    <kbd>Ctrl+O</kbd></button>
     <div class="menu-sep"></div>
     <div class="menu-heading">Recent Files</div>
@@ -45,7 +45,7 @@
     <button data-cmd="export-html"    role="menuitem"><span>Export as HTML…</span></button>
     <button data-cmd="export-pdf"     role="menuitem"><span>Export as PDF…</span></button>
     <div class="menu-sep"></div>
-    <button data-cmd="close-tab"      role="menuitem"><span>Close Tab</span>     <kbd>Ctrl+W</kbd></button>
+    <button data-cmd="close-tab"      role="menuitem"><span>Close Tab</span>     <kbd>Alt+W</kbd></button>
     <div class="menu-sep"></div>
     <button data-cmd="toggle-vtabs"   role="menuitem"><span id="toggle-vtabs-label">Vertical Tabs</span><kbd>Ctrl+B</kbd></button>
     <button data-cmd="toggle-theme"   role="menuitem"><span>Toggle Dark Mode</span><kbd>Ctrl+D</kbd></button>
@@ -58,7 +58,7 @@
     <aside id="vtabs-column" aria-label="Open tabs">
       <div id="vtabs-header">
         <span id="vtabs-title">Tabs</span>
-        <button id="vtabs-new" title="New tab (Ctrl+N)" aria-label="New tab">+</button>
+        <button id="vtabs-new" title="New tab (Alt+N)" aria-label="New tab">+</button>
       </div>
       <div id="vtabs-list" role="tablist"></div>
     </aside>
