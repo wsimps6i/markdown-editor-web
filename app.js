@@ -789,7 +789,7 @@ async function bootstrap() {
     if (viewMode && viewMode !== 'split') setViewMode(viewMode);
   } catch { /* IndexedDB unavailable — private browsing? — proceed without persistence. */ }
 
-  document.getElementById('version-menu-label').textContent = `Version ${APP_VERSION}`;
+  document.getElementById('version-menu-value').textContent = APP_VERSION;
 
   newTab();
   refreshRecentMenu();

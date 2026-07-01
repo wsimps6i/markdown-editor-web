@@ -238,6 +238,12 @@ body {
 #app-menu button:hover:not(.disabled) { background: var(--bg-hover); }
 #app-menu button.disabled { color: var(--fg-muted); cursor: default; }
 #app-menu button > span { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+#app-menu button > span.menu-value {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--fg-muted);
+}
 #app-menu button > kbd {
   font-family: var(--font-mono);
   font-size: 10.5px;
