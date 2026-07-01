@@ -55,11 +55,9 @@ function greet(name) {
 | --------------------- | ---------------- |
 | New tab               | \`Ctrl+N\`         |
 | Open file             | \`Ctrl+O\`         |
-| Open folder           | \`Ctrl+K\`         |
 | Save / Save As        | \`Ctrl+S\` / \`Ctrl+Shift+S\` |
 | Close tab             | \`Ctrl+W\`         |
-| Toggle sidebar        | \`Ctrl+B\`         |
-| Toggle vertical tabs  | \`Ctrl+Shift+B\`   |
+| Vertical tabs         | \`Ctrl+B\`         |
 | Editor / Split / Preview | \`Ctrl+1\` / \`2\` / \`3\` |
 | Dark mode             | \`Ctrl+D\`         |
 
@@ -73,20 +71,12 @@ let nextId = 1;
 const tabs = []; // { id, handle, fileName, doc, dirty, scrollPos, lastSavedDoc }
 let activeTabId = null;
 
-let currentFolderHandle = null;
-let currentFolderName = null;
-let folderTree = null;
-const expandedDirs = new Set();
-
 /* ---------- DOM refs ---------- */
 const tabsEl = document.getElementById('tabs');
 const editorEl = document.getElementById('editor');
 const previewEl = document.getElementById('preview');
 const statusFileEl = document.getElementById('status-file');
 const statusStatsEl = document.getElementById('status-stats');
-const sidebarTitleEl = document.getElementById('sidebar-title');
-const sidebarEmptyEl = document.getElementById('sidebar-empty');
-const treeEl = document.getElementById('file-tree');
 const workspace = document.getElementById('workspace');
 const splitter = document.getElementById('splitter');
 const menuBtn = document.getElementById('menu-btn');
@@ -181,7 +171,6 @@ function setActiveTab(id) {
   renderTabs();
   renderPreview();
   updateStats();
-  updateTreeHighlight();
 }
 
 async function closeTab(id) {
@@ -489,149 +478,6 @@ async function openRecentEntry(entry) {
   }
 }
 
-/* ---------- Folder / tree ---------- */
-const MARKDOWN_EXTS = new Set(['.md', '.markdown', '.mdown', '.mkd', '.mkdn', '.txt']);
-const TREE_IGNORES = new Set(['node_modules', '.git', '.svn', '.hg', 'dist', 'out', '.next', '.cache']);
-
-async function openFolder() {
-  if (!HAS_FSA) { alert('Folder access requires a Chromium-based browser (Chrome, Edge).'); return; }
-  try {
-    const handle = await window.showDirectoryPicker();
-    currentFolderHandle = handle;
-    currentFolderName = handle.name;
-    expandedDirs.clear();
-    folderTree = await readDirTree(handle);
-    await dbSet('kv', 'lastFolder', handle);
-    renderTree();
-  } catch (err) {
-    if (err.name !== 'AbortError') alert(`Open Folder failed: ${err.message}`);
-  }
-}
-
-async function refreshFolder() {
-  if (!currentFolderHandle) return openFolder();
-  folderTree = await readDirTree(currentFolderHandle);
-  renderTree();
-}
-
-async function readDirTree(dirHandle, depth = 0, depthBudget = 4) {
-  const result = [];
-  for await (const [name, entry] of dirHandle.entries()) {
-    if (name.startsWith('.') && name !== '.') continue;
-    if (TREE_IGNORES.has(name)) continue;
-    if (entry.kind === 'directory') {
-      let children = [];
-      if (depth < depthBudget) {
-        try { children = await readDirTree(entry, depth + 1, depthBudget); } catch { children = []; }
-      }
-      if (children.length > 0 || depth === 0) {
-        result.push({ type: 'dir', name, handle: entry, children });
-      }
-    } else {
-      const dot = name.lastIndexOf('.');
-      const ext = dot === -1 ? '' : name.slice(dot).toLowerCase();
-      if (MARKDOWN_EXTS.has(ext)) result.push({ type: 'file', name, handle: entry });
-    }
-  }
-  result.sort((a, b) => {
-    if (a.type !== b.type) return a.type === 'dir' ? -1 : 1;
-    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
-  });
-  return result;
-}
-
-function renderTree() {
-  if (!currentFolderHandle) {
-    sidebarTitleEl.textContent = 'Files';
-    sidebarTitleEl.title = '';
-    sidebarEmptyEl.style.display = '';
-    treeEl.hidden = true;
-    return;
-  }
-  sidebarTitleEl.textContent = currentFolderName;
-  sidebarTitleEl.title = currentFolderName;
-  sidebarEmptyEl.style.display = 'none';
-  treeEl.hidden = false;
-  treeEl.innerHTML = '';
-  for (const node of folderTree || []) treeEl.appendChild(treeNode(node, ''));
-  updateTreeHighlight();
-}
-
-function treeNode(node, parentPath) {
-  const path = parentPath + '/' + node.name;
-  const li = document.createElement('li');
-  const row = document.createElement('div');
-  row.className = `tree-row ${node.type}`;
-  row.dataset.path = path;
-  row.title = node.name;
-
-  const caret = document.createElement('span');
-  caret.className = 'tree-caret';
-  caret.textContent = '▶';
-  row.appendChild(caret);
-
-  const icon = document.createElement('span');
-  icon.className = 'tree-icon';
-  icon.innerHTML = node.type === 'dir'
-    ? '<svg viewBox="0 0 16 16" width="13" height="13"><path fill="currentColor" d="M1.5 3.5h4l1 1.2h8v8.3a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5z"/></svg>'
-    : '<svg viewBox="0 0 16 16" width="13" height="13"><path fill="none" stroke="currentColor" stroke-width="1.2" d="M3.5 1.5h6l3 3v10h-9z"/></svg>';
-  row.appendChild(icon);
-
-  const name = document.createElement('span');
-  name.className = 'tree-name';
-  name.textContent = node.name;
-  row.appendChild(name);
-
-  if (node.type === 'dir') {
-    const expanded = expandedDirs.has(path);
-    if (expanded) row.classList.add('expanded');
-    row.addEventListener('click', () => {
-      if (expandedDirs.has(path)) expandedDirs.delete(path); else expandedDirs.add(path);
-      renderTree();
-    });
-    li.appendChild(row);
-    if (expanded && node.children && node.children.length > 0) {
-      const ul = document.createElement('ul');
-      for (const child of node.children) ul.appendChild(treeNode(child, path));
-      li.appendChild(ul);
-    }
-  } else {
-    row.addEventListener('click', () => openFromTree(node));
-    li.appendChild(row);
-  }
-  return li;
-}
-
-async function openFromTree(node) {
-  try {
-    const existing = await findTabByHandle(node.handle);
-    if (existing) { setActiveTab(existing.id); return; }
-    const file = await node.handle.getFile();
-    const content = await file.text();
-    newTab({ handle: node.handle, content, savedContent: content });
-    await recents.add(node.handle);
-    refreshRecentMenu();
-  } catch (err) {
-    alert(`Open failed: ${err.message}`);
-  }
-}
-
-function updateTreeHighlight() {
-  // With FSA we don't have paths, so highlight by name match on the currently-active file.
-  const tab = getActive();
-  const activeName = tab && tab.handle && tab.handle.name;
-  treeEl.querySelectorAll('.tree-row.file').forEach(row => {
-    row.classList.toggle('active', activeName && row.title === activeName);
-  });
-}
-
-async function toggleSidebar() {
-  const hidden = document.body.classList.toggle('sidebar-hidden');
-  await dbSet('kv', 'sidebarHidden', hidden);
-  workspace.style.gridTemplateColumns = '';
-  requestAnimationFrame(() => editor.refresh());
-}
-
 async function toggleVerticalTabs() {
   const on = document.body.classList.toggle('tabs-vertical');
   await dbSet('kv', 'tabsVertical', on);
@@ -645,9 +491,6 @@ function refreshVtabsMenuLabel() {
   toggleVtabsLabel.textContent = on ? '✓ Vertical Tabs' : 'Vertical Tabs';
 }
 
-document.getElementById('sidebar-open-folder').addEventListener('click', openFolder);
-document.getElementById('sidebar-empty-btn').addEventListener('click', openFolder);
-document.getElementById('sidebar-refresh').addEventListener('click', refreshFolder);
 document.getElementById('vtabs-new').addEventListener('click', () => newTab());
 
 /* ---------- View modes ---------- */
@@ -691,20 +534,16 @@ splitter.addEventListener('mousedown', (e) => {
 window.addEventListener('mousemove', (e) => {
   if (!dragging) return;
   const rect = workspace.getBoundingClientRect();
-  const cs = getComputedStyle(document.documentElement);
-  const sidebarHidden = document.body.classList.contains('sidebar-hidden');
   const vtabsOn = document.body.classList.contains('tabs-vertical');
-  const sidebarW = sidebarHidden ? 0 : (parseInt(cs.getPropertyValue('--sidebar-w')) || 240);
-  const vtabsW = vtabsOn ? (parseInt(cs.getPropertyValue('--vtabs-w')) || 200) : 0;
-  const fixed = sidebarW + vtabsW;
-  const usable = rect.width - fixed;
-  const localX = e.clientX - rect.left - fixed;
+  const vtabsW = vtabsOn
+    ? (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--vtabs-w')) || 200)
+    : 0;
+  const usable = rect.width - vtabsW;
+  const localX = e.clientX - rect.left - vtabsW;
   const ratio = Math.max(0.15, Math.min(0.85, localX / usable));
-  const prefix = [
-    vtabsOn ? 'var(--vtabs-w)' : null,
-    sidebarHidden ? null : 'var(--sidebar-w)'
-  ].filter(Boolean).join(' ');
-  workspace.style.gridTemplateColumns = `${prefix ? prefix + ' ' : ''}${ratio}fr 1px ${1 - ratio}fr`;
+  workspace.style.gridTemplateColumns = vtabsOn
+    ? `var(--vtabs-w) ${ratio}fr 1px ${1 - ratio}fr`
+    : `${ratio}fr 1px ${1 - ratio}fr`;
   editor.refresh();
 });
 window.addEventListener('mouseup', () => {
@@ -852,13 +691,11 @@ async function dispatchCommand(cmd) {
   switch (cmd) {
     case 'new-tab':        newTab(); break;
     case 'open':           HAS_FSA ? await openFilesViaFSA() : await openFilesViaUpload(); break;
-    case 'open-folder':    await openFolder(); break;
     case 'save':           if (tab) await saveTab(tab); break;
     case 'save-as':        if (tab) await saveTabAs(tab); break;
     case 'export-html':    await exportHtml(); break;
     case 'export-pdf':     exportPdf(); break;
     case 'close-tab':      if (tab) closeTab(tab.id); break;
-    case 'toggle-sidebar': await toggleSidebar(); break;
     case 'toggle-vtabs':   await toggleVerticalTabs(); break;
     case 'toggle-theme':   toggleTheme(); break;
     case 'find':           editor.execCommand('find'); break;
@@ -876,12 +713,10 @@ window.addEventListener('keydown', (e) => {
   let cmd = null;
   if      (key === 'n' && !shift) cmd = 'new-tab';
   else if (key === 'o' && !shift) cmd = 'open';
-  else if (key === 'k' && !shift) cmd = 'open-folder';
   else if (key === 's' && !shift) cmd = 'save';
   else if (key === 's' && shift)  cmd = 'save-as';
   else if (key === 'w' && !shift) cmd = 'close-tab';
-  else if (key === 'b' && !shift) cmd = 'toggle-sidebar';
-  else if (key === 'b' && shift)  cmd = 'toggle-vtabs';
+  else if (key === 'b' && !shift) cmd = 'toggle-vtabs';
   else if (key === 'd' && !shift) cmd = 'toggle-theme';
   else if (key === '1') cmd = 'view-editor';
   else if (key === '2') cmd = 'view-split';
@@ -908,29 +743,14 @@ async function bootstrap() {
 
   // Restore preferences
   try {
-    const sidebarHidden = await dbGet('kv', 'sidebarHidden');
-    if (sidebarHidden === true) document.body.classList.add('sidebar-hidden');
     const tabsVertical = await dbGet('kv', 'tabsVertical');
     if (tabsVertical === true) document.body.classList.add('tabs-vertical');
     refreshVtabsMenuLabel();
     const viewMode = await dbGet('kv', 'viewMode');
     if (viewMode && viewMode !== 'split') setViewMode(viewMode);
-    // Try to restore last folder (permission is not persisted; user must re-grant on click).
-    const lastFolder = await dbGet('kv', 'lastFolder');
-    if (lastFolder && HAS_FSA) {
-      currentFolderHandle = lastFolder;
-      currentFolderName = lastFolder.name;
-      if ((await lastFolder.queryPermission({ mode: 'read' })) === 'granted') {
-        folderTree = await readDirTree(lastFolder);
-        renderTree();
-      } else {
-        renderTree(); // shows folder name in header, empty body — user clicks refresh to grant
-      }
-    }
   } catch { /* IndexedDB unavailable — private browsing? — proceed without persistence. */ }
 
   newTab({ content: DEFAULT_DOC, fileName: 'Welcome' });
-  renderTree();
   refreshRecentMenu();
 }
 

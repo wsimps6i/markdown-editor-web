@@ -8,7 +8,6 @@ A clean, Typora-inspired markdown editor that runs directly in your browser. Sam
 - **Multi-tab editing** — open many files, live dirty indicators, safe-close prompts.
 - **Live preview** — GFM markdown rendered as you type.
 - **Inline-rendered editor** — headings grow, bold is bold, code gets a pill, markers fade.
-- **File-tree sidebar** — open a folder, browse and click to open.
 - **Recent files** — up to 10 previously-opened files, remembered across sessions.
 - **HTML / PDF export** — standalone HTML or print-to-PDF via browser's native print dialog.
 - **Three view modes** — editor only, split, preview only.
@@ -42,12 +41,11 @@ Push to `main`, enable GitHub Pages with source = "Deploy from a branch" pointin
 | ---------------------------- | -------------------- |
 | New tab                      | `Ctrl+N`             |
 | Open file                    | `Ctrl+O`             |
-| Open folder                  | `Ctrl+K`             |
 | Save                         | `Ctrl+S`             |
 | Save As                      | `Ctrl+Shift+S`       |
 | Close tab                    | `Ctrl+W`             |
 | Find in editor               | `Ctrl+F`             |
-| Toggle sidebar               | `Ctrl+B`             |
+| Vertical tabs                | `Ctrl+B`             |
 | Editor / Split / Preview     | `Ctrl+1` / `2` / `3` |
 | Toggle dark mode             | `Ctrl+D`             |
 
