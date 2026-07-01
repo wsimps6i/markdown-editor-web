@@ -146,7 +146,7 @@ body {
 .tab.dirty::before {
   content: "";
   position: absolute;
-  left: -4px;
+  left: 4px;
   top: 50%;
   transform: translateY(-50%);
   width: 8px;
@@ -377,7 +377,7 @@ body.tabs-vertical #vtabs-column { display: flex; }
 .vtab.dirty::before {
   content: "";
   position: absolute;
-  left: -4px;
+  left: 4px;
   top: 50%;
   transform: translateY(-50%);
   width: 8px;
