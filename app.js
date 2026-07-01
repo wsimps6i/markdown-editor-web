@@ -727,6 +727,12 @@ async function dispatchCommand(cmd) {
 
 /* ---------- Keyboard shortcuts ---------- */
 window.addEventListener('keydown', (e) => {
+  // F1 is the one shortcut that doesn't need a modifier — standard Help key.
+  if (e.key === 'F1' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+    e.preventDefault();
+    dispatchCommand('toggle-help');
+    return;
+  }
   if (!(e.ctrlKey || e.metaKey)) return;
   const key = e.key.toLowerCase();
   const shift = e.shiftKey;
