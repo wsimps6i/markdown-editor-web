@@ -141,8 +141,12 @@ body {
   text-overflow: ellipsis;
   font-weight: 400;
 }
-/* Dirty indicator sits on the tab's left edge — half in, half out — bigger and
-   orange so unsaved changes are impossible to miss. */
+/* Push the title text right when the pip is present so they don't touch. */
+.tab.dirty .tab-title  { padding-left: 8px; }
+.vtab.dirty .vtab-title { padding-left: 8px; }
+
+/* Dirty indicator sits inside the tab, aligned near the left edge — orange
+   so unsaved changes are impossible to miss. */
 .tab.dirty::before {
   content: "";
   position: absolute;
