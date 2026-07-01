@@ -743,7 +743,7 @@ window.addEventListener('keydown', (e) => {
   else if (key === 's' && shift)  cmd = 'save-as';
   else if (key === 'w' && !shift) cmd = 'close-tab';
   else if (key === 'b' && !shift) cmd = 'toggle-vtabs';
-  else if (key === 'b' && shift)  cmd = 'toggle-help';
+  else if (key === 'h' && shift)  cmd = 'toggle-help';
   else if (key === 'd' && !shift) cmd = 'toggle-theme';
   else if (key === '1') cmd = 'view-editor';
   else if (key === '2') cmd = 'view-split';
