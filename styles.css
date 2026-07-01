@@ -146,11 +146,11 @@ body {
 .tab.dirty::before {
   content: "";
   position: absolute;
-  left: -5px;
+  left: -4px;
   top: 50%;
   transform: translateY(-50%);
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   background: #f59e0b;
   border-radius: 50%;
   z-index: 1;
@@ -377,11 +377,11 @@ body.tabs-vertical #vtabs-column { display: flex; }
 .vtab.dirty::before {
   content: "";
   position: absolute;
-  left: -5px;
+  left: -4px;
   top: 50%;
   transform: translateY(-50%);
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   background: #f59e0b;
   border-radius: 50%;
   z-index: 1;
