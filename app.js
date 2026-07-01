@@ -12,7 +12,7 @@ const HAS_FSA = typeof window.showOpenFilePicker === 'function';
 
 const md = markdownit({ html: false, linkify: true, typographer: true, breaks: false });
 
-const DEFAULT_DOC = `# Welcome
+const DEFAULT_DOC = `# Help
 
 This is the **web edition** of the markdown editor. Same clean interface as the desktop app, running in your browser.
 
@@ -84,7 +84,7 @@ const menuEl = document.getElementById('app-menu');
 const recentMenuEl = document.getElementById('recent-menu');
 const vtabsListEl = document.getElementById('vtabs-list');
 const toggleVtabsLabel = document.getElementById('toggle-vtabs-label');
-const toggleWelcomeLabel = document.getElementById('toggle-welcome-label');
+const toggleHelpLabel = document.getElementById('toggle-help-label');
 
 /* ---------- Editor ---------- */
 const editor = CodeMirror.fromTextArea(editorEl, {
@@ -138,7 +138,7 @@ function updateStats() {
 /* ---------- Tabs ---------- */
 function getActive() { return tabs.find(t => t.id === activeTabId) || null; }
 
-function newTab({ handle = null, content = '', fileName = null, savedContent = null, isWelcome = false } = {}) {
+function newTab({ handle = null, content = '', fileName = null, savedContent = null, isHelp = false } = {}) {
   const tab = {
     id: nextId++,
     handle,
@@ -147,7 +147,7 @@ function newTab({ handle = null, content = '', fileName = null, savedContent = n
     lastSavedDoc: savedContent ?? (handle ? content : null),
     dirty: false,
     scrollPos: null,
-    isWelcome
+    isHelp
   };
   tabs.push(tab);
   setActiveTab(tab.id);
@@ -199,7 +199,7 @@ async function closeTab(id) {
 function renderTabs() {
   renderTabsInto(tabsEl, 'tab');
   renderTabsInto(vtabsListEl, 'vtab');
-  refreshWelcomeMenuLabel();
+  refreshHelpMenuLabel();
 }
 
 function renderTabsInto(container, prefix) {
@@ -494,20 +494,20 @@ function refreshVtabsMenuLabel() {
   toggleVtabsLabel.textContent = on ? '✓ Vertical Tabs' : 'Vertical Tabs';
 }
 
-function findWelcomeTab() { return tabs.find(t => t.isWelcome); }
+function findHelpTab() { return tabs.find(t => t.isHelp); }
 
-function refreshWelcomeMenuLabel() {
-  toggleWelcomeLabel.textContent = findWelcomeTab() ? '✓ Welcome' : 'Welcome';
+function refreshHelpMenuLabel() {
+  toggleHelpLabel.textContent = findHelpTab() ? '✓ Help' : 'Help';
 }
 
-async function toggleWelcome() {
-  const existing = findWelcomeTab();
+async function toggleHelp() {
+  const existing = findHelpTab();
   if (existing) {
     await closeTab(existing.id);
   } else {
-    newTab({ content: DEFAULT_DOC, fileName: 'Welcome', isWelcome: true });
+    newTab({ content: DEFAULT_DOC, fileName: 'Help', isHelp: true });
   }
-  refreshWelcomeMenuLabel();
+  refreshHelpMenuLabel();
 }
 
 document.getElementById('vtabs-new').addEventListener('click', () => newTab());
@@ -717,7 +717,7 @@ async function dispatchCommand(cmd) {
     case 'close-tab':      if (tab) closeTab(tab.id); break;
     case 'toggle-vtabs':   await toggleVerticalTabs(); break;
     case 'toggle-theme':   toggleTheme(); break;
-    case 'toggle-welcome': await toggleWelcome(); break;
+    case 'toggle-help': await toggleHelp(); break;
     case 'find':           editor.execCommand('find'); break;
     case 'view-editor':    setViewMode('editor'); break;
     case 'view-split':     setViewMode('split'); break;
