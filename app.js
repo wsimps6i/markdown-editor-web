@@ -7,7 +7,7 @@
    upload / download in other browsers.
    ============================================================ */
 
-const APP_VERSION = '0.1.0';
+const APP_VERSION = '0.3.0';
 const HAS_FSA = typeof window.showOpenFilePicker === 'function';
 
 const md = markdownit({ html: false, linkify: true, typographer: true, breaks: false });
