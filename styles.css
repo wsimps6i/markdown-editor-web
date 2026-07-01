@@ -367,7 +367,6 @@ body.tabs-vertical #vtabs-column { display: flex; }
 .vtab.active {
   background: var(--bg-tab-active);
   color: var(--fg);
-  border-left-color: var(--accent);
 }
 .vtab .vtab-title {
   flex: 1;
