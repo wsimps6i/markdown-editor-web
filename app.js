@@ -896,7 +896,7 @@ async function bootstrap() {
     }
   } catch { /* IndexedDB unavailable — private browsing? — proceed without persistence. */ }
 
-  newTab({ content: DEFAULT_DOC, fileName: 'Start' });
+  newTab({ content: DEFAULT_DOC, fileName: 'Welcome' });
   renderTree();
   refreshRecentMenu();
 }
