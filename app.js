@@ -165,6 +165,9 @@ function setActiveTab(id) {
   }
   activeTabId = id;
   editor.setValue(incoming.doc || '');
+  // Help tabs are read-only reference material; nocursor hides the caret entirely
+  // so it reads as prose rather than "editor with content".
+  editor.setOption('readOnly', incoming.isHelp ? 'nocursor' : false);
   requestAnimationFrame(() => {
     if (incoming.scrollPos) editor.scrollTo(incoming.scrollPos.left, incoming.scrollPos.top);
     editor.refresh();
