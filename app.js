@@ -144,7 +144,10 @@ function newTab({ handle = null, content = '', fileName = null, savedContent = n
     handle,
     fileName: fileName || (handle ? handle.name : 'Untitled'),
     doc: content,
-    lastSavedDoc: savedContent ?? (handle ? content : null),
+    // Treat the initial content as "already saved" for tabs that have a backing
+    // file OR are the built-in Help doc — prevents the dirty flag flipping on
+    // the initial setValue() when the tab becomes active.
+    lastSavedDoc: savedContent ?? ((handle || isHelp) ? content : null),
     dirty: false,
     scrollPos: null,
     isHelp
@@ -740,7 +743,7 @@ window.addEventListener('keydown', (e) => {
   else if (key === 's' && shift)  cmd = 'save-as';
   else if (key === 'w' && !shift) cmd = 'close-tab';
   else if (key === 'b' && !shift) cmd = 'toggle-vtabs';
-  else if (key === 'h' && shift)  cmd = 'toggle-help';
+  else if (key === 'b' && shift)  cmd = 'toggle-help';
   else if (key === 'd' && !shift) cmd = 'toggle-theme';
   else if (key === '1') cmd = 'view-editor';
   else if (key === '2') cmd = 'view-split';
