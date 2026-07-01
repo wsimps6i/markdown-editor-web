@@ -506,6 +506,17 @@ function refreshHelpMenuLabel() {
   toggleHelpLabel.textContent = findHelpTab() ? '✓ Help' : 'Help';
 }
 
+async function showVersion() {
+  await showConfirm({
+    title: 'Markdown Editor',
+    message: `Version ${APP_VERSION}`,
+    detail: 'Web edition · github.com/wsimps6i/markdown-editor-web',
+    buttons: ['Close'],
+    defaultIndex: 0,
+    cancelIndex: 0
+  });
+}
+
 async function toggleHelp() {
   const existing = findHelpTab();
   if (existing) {
@@ -723,7 +734,8 @@ async function dispatchCommand(cmd) {
     case 'close-tab':      if (tab) closeTab(tab.id); break;
     case 'toggle-vtabs':   await toggleVerticalTabs(); break;
     case 'toggle-theme':   toggleTheme(); break;
-    case 'toggle-help': await toggleHelp(); break;
+    case 'toggle-help':    await toggleHelp(); break;
+    case 'show-version':   await showVersion(); break;
     case 'find':           editor.execCommand('find'); break;
     case 'view-editor':    setViewMode('editor'); break;
     case 'view-split':     setViewMode('split'); break;
