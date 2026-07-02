@@ -721,11 +721,19 @@ function applyThemeSideEffects() {
   renderPreview();
 }
 
+function refreshThemeMenuLabel() {
+  const el = document.getElementById('toggle-theme-label');
+  if (!el) return;
+  const dark = document.body.classList.contains('theme-dark');
+  el.textContent = dark ? '✓ Dark Mode' : 'Dark Mode';
+}
+
 function toggleTheme() {
   const dark = document.body.classList.toggle('theme-dark');
   document.body.classList.toggle('theme-light', !dark);
   try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch {}
   applyThemeSideEffects();
+  refreshThemeMenuLabel();
 }
 try {
   if (localStorage.getItem('theme') === 'dark') {
@@ -1159,6 +1167,7 @@ async function bootstrap() {
 
   // Sync hljs stylesheet / mermaid theme with whatever theme was applied above.
   applyThemeSideEffects();
+  refreshThemeMenuLabel();
 
   const restored = await restoreSession();
   if (!restored) newTab();
