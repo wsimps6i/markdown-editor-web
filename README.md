@@ -7,7 +7,7 @@ A clean, Typora-inspired markdown editor that runs directly in your browser. Del
 - **Real save-to-same-file** via the File System Access API (Chrome / Edge).
 - **Multi-tab editing** — open many files, orange dirty-tab pip on the left edge, safe-close prompts.
 - **Vertical or horizontal tab strip** — toggle any time via **Ctrl+B**.
-- **Live preview** — GFM markdown rendered as you type.
+- **Live preview** — CommonMark + GFM + extended syntax rendered as you type. Full coverage of the [Markdown Guide cheat sheet](https://www.markdownguide.org/cheat-sheet/): headings, bold/italic, strikethrough, links, images, tables, fenced code, blockquotes, task lists, footnotes, definition lists, heading IDs, emoji shortcodes, highlight, subscript, superscript, and auto-linked bare URLs.
 - **Inline-rendered editor** — headings grow, bold is bold, code gets a pill, syntax markers fade.
 - **Recent files** — up to 10 previously-opened files remembered across sessions.
 - **HTML / PDF export** — standalone HTML, or PDF via a hidden print iframe (no popup tab).
@@ -58,7 +58,7 @@ Push to `main`, enable GitHub Pages with source = "Deploy from a branch" pointin
 
 - Vanilla HTML / CSS / JS — no build step, no framework.
 - [CodeMirror 5](https://codemirror.net/5/) for the editor, loaded from jsDelivr CDN.
-- [markdown-it](https://github.com/markdown-it/markdown-it) for preview rendering.
+- [markdown-it](https://github.com/markdown-it/markdown-it) for preview rendering, with plugins for the extended syntax: `markdown-it-task-lists`, `markdown-it-footnote`, `markdown-it-emoji`, `markdown-it-mark`, `markdown-it-sub`, `markdown-it-sup`, `markdown-it-deflist`, `markdown-it-anchor`.
 - File System Access API + IndexedDB for persistent state (recent files, view mode, vertical-tabs preference).
 
 ## Project layout
