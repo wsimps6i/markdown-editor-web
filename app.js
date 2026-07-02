@@ -1025,20 +1025,24 @@ function exportPdf() {
 }
 
 /* ---------- Menu bar ---------- */
+function isMenuOpen() { return menuEl.classList.contains('open'); }
 function openMenu() {
-  menuEl.hidden = false;
+  menuEl.classList.add('open');
+  menuEl.setAttribute('aria-hidden', 'false');
   menuBtn.classList.add('open');
 }
 function closeMenu() {
-  menuEl.hidden = true;
+  menuEl.classList.remove('open');
+  menuEl.setAttribute('aria-hidden', 'true');
   menuBtn.classList.remove('open');
 }
-menuBtn.addEventListener('click', () => menuEl.hidden ? openMenu() : closeMenu());
+menuBtn.addEventListener('click', () => isMenuOpen() ? closeMenu() : openMenu());
+document.getElementById('app-menu-close').addEventListener('click', closeMenu);
 document.addEventListener('click', (e) => {
-  if (!menuEl.hidden && !menuEl.contains(e.target) && e.target !== menuBtn && !menuBtn.contains(e.target)) closeMenu();
+  if (isMenuOpen() && !menuEl.contains(e.target) && e.target !== menuBtn && !menuBtn.contains(e.target)) closeMenu();
 });
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !menuEl.hidden) closeMenu();
+  if (e.key === 'Escape' && isMenuOpen()) closeMenu();
 });
 
 menuEl.querySelectorAll('button[data-cmd]').forEach(b => {

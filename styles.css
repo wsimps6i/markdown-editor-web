@@ -217,21 +217,56 @@ body {
 #view-toggle button:hover { background: var(--bg-hover); color: var(--fg); }
 #view-toggle button.active { background: var(--accent-soft); color: var(--accent); }
 
-/* ---------- Dropdown menu ---------- */
+/* ---------- Slide-in menu panel (from the left, Outlook-style) ---------- */
 #app-menu {
-  position: absolute;
-  top: calc(var(--tab-bar-h) - 2px);
-  left: 6px;
-  z-index: 500;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 280px;
+  z-index: 1000;
   background: var(--bg-panel);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  box-shadow: var(--shadow-md), 0 8px 24px rgba(0, 0, 0, 0.12);
-  padding: 4px;
-  min-width: 240px;
+  border-right: 1px solid var(--border);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
+  padding: 6px;
   font-size: 12.5px;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
-#app-menu[hidden] { display: none; }
+#app-menu.open { transform: translateX(0); }
+body.theme-dark #app-menu { box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35); }
+
+#app-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 8px 10px 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-soft);
+}
+#app-menu-close {
+  width: 24px; height: 24px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--fg-soft);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+#app-menu-close:hover { background: var(--bg-hover); color: var(--fg); }
 
 #app-menu button {
   display: flex;
