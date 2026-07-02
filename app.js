@@ -23,6 +23,7 @@ This is the **web edition** of the markdown editor. Same clean interface as the 
 - ~~Strikethrough~~ with \`~~text~~\`
 - \`inline code\` with backticks
 - [Links](https://example.com) with \`[text](url)\`
+- Images with \`![alt](url "optional title")\`
 
 ## Headings
 
