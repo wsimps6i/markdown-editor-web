@@ -12,6 +12,17 @@ const HAS_FSA = typeof window.showOpenFilePicker === 'function';
 
 const md = markdownit({ html: false, linkify: true, typographer: true, breaks: false });
 
+// Extended-syntax plugins loaded via UMD scripts in index.html.
+// markdown-it-emoji@3 exposes { full, light, bare }; fall back for older shapes.
+md.use(markdownitTaskLists, { enabled: false, label: false })
+  .use(markdownitFootnote)
+  .use(markdownitEmoji.full || markdownitEmoji)
+  .use(markdownitMark)
+  .use(markdownitSub)
+  .use(markdownitSup)
+  .use(markdownitDeflist)
+  .use(markdownItAnchor, { permalink: false });
+
 const DEFAULT_DOC = `# Help
 
 This is the **web edition** of the markdown editor. Same clean interface as the desktop app, running in your browser.
@@ -23,7 +34,12 @@ This is the **web edition** of the markdown editor. Same clean interface as the 
 - ~~Strikethrough~~ with \`~~text~~\`
 - \`inline code\` with backticks
 - [Links](https://example.com) with \`[text](url)\`
+- Auto-links with bare URLs — https://example.com — or \`<https://example.com>\`
 - Images with \`![alt](url "optional title")\`
+- ==Highlighted text== with \`==text==\`
+- Subscript H~2~O with \`H~2~O\`
+- Superscript X^2^ with \`X^2^\`
+- Emoji :sparkles: :rocket: with \`:emoji-name:\`
 
 ## Headings
 
@@ -33,6 +49,8 @@ This is the **web edition** of the markdown editor. Same clean interface as the 
 #### Heading 4
 ##### Heading 5
 ###### Heading 6
+
+Each heading gets an automatic \`id\` slug, so you can link to it with \`#slug\` in the URL. You can also override the id: \`### My Heading {#custom-id}\`.
 
 ## Lists
 
@@ -58,6 +76,25 @@ function greet(name) {
 Put \`---\` or \`***\` on its own line:
 
 ---
+
+## Footnotes
+
+Reference with \`[^label]\`, then define at the bottom with \`[^label]: text\`. Example: markdown was created in 2004.[^md]
+
+[^md]: John Gruber and Aaron Swartz — see [daringfireball.net](https://daringfireball.net/projects/markdown/).
+
+## Definition lists
+
+\`\`\`
+term
+: definition
+\`\`\`
+
+Markdown
+: A lightweight markup language for writing formatted text with plain text.
+
+Preview
+: The right-hand pane that shows the rendered output as you type.
 
 ## Shortcuts
 
@@ -654,6 +691,15 @@ th, td { border: 1px solid #e3e1de; padding: 6px 10px; text-align: left; }
 th { background: #f6f5f3; }
 hr { border: none; border-top: 1px solid #e3e1de; margin: 1.8em 0; }
 img { max-width: 100%; display: block; margin: 1em auto; }
+mark { background: #fff59d; padding: 0.05em 0.25em; border-radius: 3px; }
+li.task-list-item { list-style: none; margin-left: -1.4em; padding-left: 0.2em; }
+li.task-list-item input[type="checkbox"] { margin-right: 0.5em; }
+dt { font-weight: 600; margin-top: 1em; }
+dd { margin: 0.3em 0 0.6em 1.6em; color: #555; }
+.footnotes { margin-top: 2.5em; border-top: 1px solid #e3e1de; padding-top: 1em; font-size: 0.9em; color: #555; }
+.footnotes ol { padding-left: 1.4em; }
+.footnote-ref a { vertical-align: super; font-size: 0.75em; }
+.footnote-backref { text-decoration: none; margin-left: 0.3em; }
 `;
 
 function buildExportHtml() {
