@@ -1,6 +1,6 @@
 # Markdown Editor — Web edition
 
-A clean, Typora-inspired markdown editor that runs directly in your browser. Delivered as a static site with no install — deployed at [wsimps6i.github.io/markdown-editor-web](https://wsimps6i.github.io/markdown-editor-web/). There's also an [Electron desktop version](https://github.com/wsimps6i/markdown-editor) with a file-tree sidebar and native menus.
+A clean, Typora-inspired markdown editor that runs directly in your browser. Delivered as a static site with no install — deployed at [wsimps6i.github.io/markdown-editor-web](https://wsimps6i.github.io/markdown-editor-web/).
 
 ## Features
 
