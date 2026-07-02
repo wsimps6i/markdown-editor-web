@@ -213,7 +213,7 @@ Pipes separate columns; a row of dashes under the header divides it from the bod
 | Open file             | \`Ctrl+O\`         |
 | Save / Save As        | \`Ctrl+S\` / \`Ctrl+Shift+S\` |
 | Close tab             | \`Alt+W\`          |
-| Find / Replace        | \`Ctrl+F\` / \`Alt+R\` |
+| Find / Replace        | \`Alt+F\` / \`Alt+R\` |
 | Vertical tabs         | \`Ctrl+B\`         |
 | Help                  | \`Alt+H\`          |
 | Zoom in / out / reset | \`Alt++\` / \`Alt+-\` / \`Alt+0\` |
@@ -1089,6 +1089,7 @@ window.addEventListener('keydown', (e) => {
     if      (key === 'n') cmd = 'new-tab';
     else if (key === 'w') cmd = 'close-tab';
     else if (key === 'h') cmd = 'toggle-help';
+    else if (key === 'f') cmd = 'find';
     else if (key === 'r') cmd = 'replace';
     // Font zoom on Alt+= / Alt+- / Alt+0. Chrome intercepts the Ctrl variants.
     else if (key === '=' || key === '+') { e.preventDefault(); setZoom(+1); return; }
