@@ -213,6 +213,7 @@ Pipes separate columns; a row of dashes under the header divides it from the bod
 | Open file             | \`Ctrl+O\`         |
 | Save / Save As        | \`Ctrl+S\` / \`Ctrl+Shift+S\` |
 | Close tab             | \`Alt+W\`          |
+| Find / Replace        | \`Ctrl+F\` / \`Alt+R\` |
 | Vertical tabs         | \`Ctrl+B\`         |
 | Help                  | \`Alt+H\`          |
 | Zoom in / out / reset | \`Alt++\` / \`Alt+-\` / \`Alt+0\` |
@@ -1064,6 +1065,7 @@ async function dispatchCommand(cmd) {
     case 'toggle-help':    await toggleHelp(); break;
     case 'show-version':   await showVersion(); break;
     case 'find':           editor.execCommand('find'); break;
+    case 'replace':        editor.execCommand('replace'); break;
     case 'view-editor':    setViewMode('editor'); break;
     case 'view-split':     setViewMode('split'); break;
     case 'view-preview':   setViewMode('preview'); break;
@@ -1084,6 +1086,7 @@ window.addEventListener('keydown', (e) => {
     if      (key === 'n') cmd = 'new-tab';
     else if (key === 'w') cmd = 'close-tab';
     else if (key === 'h') cmd = 'toggle-help';
+    else if (key === 'r') cmd = 'replace';
     // Font zoom on Alt+= / Alt+- / Alt+0. Chrome intercepts the Ctrl variants.
     else if (key === '=' || key === '+') { e.preventDefault(); setZoom(+1); return; }
     else if (key === '-') { e.preventDefault(); setZoom(-1); return; }
