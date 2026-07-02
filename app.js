@@ -30,6 +30,9 @@ This is the **web edition** of the markdown editor. Same clean interface as the 
 # Heading 1
 ## Heading 2
 ### Heading 3
+#### Heading 4
+##### Heading 5
+###### Heading 6
 
 ## Lists
 
