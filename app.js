@@ -53,6 +53,12 @@ function greet(name) {
 }
 \`\`\`
 
+## Horizontal rule
+
+Put \`---\` or \`***\` on its own line:
+
+---
+
 ## Shortcuts
 
 | Action                | Shortcut         |
