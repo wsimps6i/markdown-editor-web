@@ -96,6 +96,15 @@ Markdown
 Preview
 : The right-hand pane that shows the rendered output as you type.
 
+## Tables
+
+Pipes separate columns; a row of dashes under the header divides it from the body. Colons in the divider control alignment (\`:---\` left, \`:---:\` centre, \`---:\` right).
+
+| Item      | Price  | In stock |
+| :-------- | -----: | :------: |
+| Widget    |  $2.50 |    ✓     |
+| Sprocket  | $12.00 |    ✗     |
+
 ## Shortcuts
 
 | Action                | Shortcut         |
