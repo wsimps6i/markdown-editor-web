@@ -1039,7 +1039,6 @@ function closeMenu() {
   requestAnimationFrame(() => editor.refresh());
 }
 menuBtn.addEventListener('click', () => isMenuOpen() ? closeMenu() : openMenu());
-document.getElementById('app-menu-close').addEventListener('click', closeMenu);
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && isMenuOpen()) closeMenu();
 });
