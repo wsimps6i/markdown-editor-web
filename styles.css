@@ -70,9 +70,19 @@ html, body {
 
 body {
   display: grid;
+  grid-template-columns: 0px 1fr;
   grid-template-rows: var(--tab-bar-h) 1fr var(--status-bar-h);
   height: 100vh;
+  transition: grid-template-columns 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
+body.menu-open { grid-template-columns: 280px 1fr; }
+
+/* The menu occupies column 1 spanning all three rows; everything else lives in
+   column 2. Position:fixed elements (dialogs, banner) are outside grid flow. */
+#app-menu   { grid-column: 1; grid-row: 1 / -1; }
+#tab-bar    { grid-column: 2; grid-row: 1; }
+#workspace  { grid-column: 2; grid-row: 2; }
+#status-bar { grid-column: 2; grid-row: 3; }
 
 /* ---------- Tab bar ---------- */
 #tab-bar {
@@ -217,28 +227,29 @@ body {
 #view-toggle button:hover { background: var(--bg-hover); color: var(--fg); }
 #view-toggle button.active { background: var(--accent-soft); color: var(--accent); }
 
-/* ---------- Slide-in menu panel (from the left, Outlook-style) ---------- */
+/* ---------- Pinned menu panel (grid column 1, animates 0 → 280px) ----------
+   Outer #app-menu takes whatever width the grid cell allocates and clips the
+   overflow. Inner #app-menu-inner stays at a fixed 280px so its buttons never
+   reflow during the animation. */
 #app-menu {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  width: 280px;
-  z-index: 1000;
-  background: var(--bg-panel);
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-soft);
   border-right: 1px solid var(--border);
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
+}
+body:not(.menu-open) #app-menu { border-right: none; }
+
+#app-menu-inner {
+  width: 280px;
+  height: 100%;
   padding: 6px;
   font-size: 12.5px;
   display: flex;
   flex-direction: column;
-  transform: translateX(-100%);
-  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-y: auto;
   overflow-x: hidden;
 }
-#app-menu.open { transform: translateX(0); }
-body.theme-dark #app-menu { box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35); }
 
 #app-menu-header {
   display: flex;

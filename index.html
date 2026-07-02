@@ -35,8 +35,10 @@
     </div>
   </div>
 
-  <!-- Slide-in menu panel (from the left edge, Outlook-style) -->
+  <!-- Pinned menu panel: grid column 1 animates 0 → 280px; the inner wrapper
+       stays at a fixed 280px so its contents never squeeze during the transition. -->
   <div id="app-menu" role="menu" aria-hidden="true">
+    <div id="app-menu-inner">
     <div id="app-menu-header">
       <span>Menu</span>
       <button id="app-menu-close" title="Close menu (Esc)" aria-label="Close menu">&times;</button>
@@ -67,6 +69,7 @@
     <div class="menu-sep"></div>
     <button data-cmd="toggle-help" role="menuitem"><span id="toggle-help-label">Help</span><kbd>Alt+H</kbd></button>
     <button data-cmd="show-version" role="menuitem"><span>Version</span><span id="version-menu-value" class="menu-value"></span></button>
+    </div>
   </div>
 
   <div id="workspace">

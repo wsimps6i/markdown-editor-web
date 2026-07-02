@@ -621,7 +621,6 @@ async function refreshRecentMenu() {
     b.innerHTML = `<span>${escapeHtml(entry.name)}</span>`;
     b.title = entry.name;
     b.addEventListener('click', async () => {
-      closeMenu();
       await openRecentEntry(entry);
     });
     recentMenuEl.appendChild(b);
@@ -1025,31 +1024,29 @@ function exportPdf() {
 }
 
 /* ---------- Menu bar ---------- */
-function isMenuOpen() { return menuEl.classList.contains('open'); }
+function isMenuOpen() { return document.body.classList.contains('menu-open'); }
 function openMenu() {
-  menuEl.classList.add('open');
+  document.body.classList.add('menu-open');
   menuEl.setAttribute('aria-hidden', 'false');
   menuBtn.classList.add('open');
+  // Force CodeMirror to remeasure — its editing pane just shrank.
+  requestAnimationFrame(() => editor.refresh());
 }
 function closeMenu() {
-  menuEl.classList.remove('open');
+  document.body.classList.remove('menu-open');
   menuEl.setAttribute('aria-hidden', 'true');
   menuBtn.classList.remove('open');
+  requestAnimationFrame(() => editor.refresh());
 }
 menuBtn.addEventListener('click', () => isMenuOpen() ? closeMenu() : openMenu());
 document.getElementById('app-menu-close').addEventListener('click', closeMenu);
-document.addEventListener('click', (e) => {
-  if (isMenuOpen() && !menuEl.contains(e.target) && e.target !== menuBtn && !menuBtn.contains(e.target)) closeMenu();
-});
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && isMenuOpen()) closeMenu();
 });
 
 menuEl.querySelectorAll('button[data-cmd]').forEach(b => {
   b.addEventListener('click', () => {
-    const cmd = b.dataset.cmd;
-    closeMenu();
-    dispatchCommand(cmd);
+    dispatchCommand(b.dataset.cmd);
   });
 });
 
