@@ -753,11 +753,22 @@ function setZoom(delta) {
 /* ---------- Scroll sync ---------- */
 const previewPaneEl = document.getElementById('preview-pane');
 let syncingScroll = false;
+let scrollSyncEnabled = true;
 function armSyncGuard() {
   syncingScroll = true;
   requestAnimationFrame(() => { syncingScroll = false; });
 }
+async function toggleScrollSync() {
+  scrollSyncEnabled = !scrollSyncEnabled;
+  refreshScrollSyncMenuLabel();
+  await dbSet('kv', 'scrollSync', scrollSyncEnabled);
+}
+function refreshScrollSyncMenuLabel() {
+  const el = document.getElementById('toggle-scroll-sync-label');
+  if (el) el.textContent = scrollSyncEnabled ? '✓ Sync Scrolling' : 'Sync Scrolling';
+}
 editor.on('scroll', () => {
+  if (!scrollSyncEnabled) return;
   if (syncingScroll || !document.body.classList.contains('view-split')) return;
   const info = editor.getScrollInfo();
   const range = info.height - info.clientHeight;
@@ -769,6 +780,7 @@ editor.on('scroll', () => {
   previewPaneEl.scrollTop = ratio * targetRange;
 });
 previewPaneEl.addEventListener('scroll', () => {
+  if (!scrollSyncEnabled) return;
   if (syncingScroll || !document.body.classList.contains('view-split')) return;
   const range = previewPaneEl.scrollHeight - previewPaneEl.clientHeight;
   if (range <= 0) return;
@@ -1061,6 +1073,7 @@ async function dispatchCommand(cmd) {
     case 'export-pdf':     exportPdf(); break;
     case 'close-tab':      if (tab) closeTab(tab.id); break;
     case 'toggle-vtabs':   await toggleVerticalTabs(); break;
+    case 'toggle-scroll-sync': await toggleScrollSync(); break;
     case 'toggle-theme':   toggleTheme(); break;
     case 'zoom-in':        setZoom(+1); break;
     case 'zoom-out':       setZoom(-1); break;
@@ -1137,6 +1150,9 @@ async function bootstrap() {
     if (viewMode && viewMode !== 'split') setViewMode(viewMode);
     const savedZoom = await dbGet('kv', 'zoom');
     if (typeof savedZoom === 'number') { zoomLevel = savedZoom; applyZoom(); }
+    const savedSync = await dbGet('kv', 'scrollSync');
+    if (typeof savedSync === 'boolean') scrollSyncEnabled = savedSync;
+    refreshScrollSyncMenuLabel();
   } catch { /* IndexedDB unavailable — private browsing? — proceed without persistence. */ }
 
   document.getElementById('version-menu-value').textContent = APP_VERSION;
