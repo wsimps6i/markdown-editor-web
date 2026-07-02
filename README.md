@@ -16,7 +16,7 @@ A clean markdown editor that runs directly in your browser. Delivered as a stati
 - **Font zoom** — `Alt++` / `Alt+-` / `Alt+0`, persisted.
 - **Drag-and-drop images** — drop a PNG/JPEG onto the editor to embed as a data URI.
 - **Inline-rendered editor** — headings grow, bold is bold, code gets a pill, syntax markers fade.
-- **Recent files** — up to 10 previously-opened files remembered across sessions.
+- **Recent files** — the last 5 previously-opened files remembered across sessions.
 - **HTML / PDF export** — standalone HTML, or PDF via a hidden print iframe (no popup tab).
 - **Help panel** — a read-only cheat-sheet tab toggleable from the menu or **Alt+H**.
 - **Three view modes** — editor only, split, preview only.

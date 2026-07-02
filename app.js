@@ -582,7 +582,7 @@ async function dbClear(store) {
 }
 
 const recents = {
-  async list() { return (await dbGetAll('recent')).sort((a, b) => b.ts - a.ts).slice(0, 10); },
+  async list() { return (await dbGetAll('recent')).sort((a, b) => b.ts - a.ts).slice(0, 5); },
   async add(handle) {
     const all = await dbGetAll('recent');
     for (const entry of all) {
