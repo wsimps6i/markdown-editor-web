@@ -7,10 +7,32 @@
    upload / download in other browsers.
    ============================================================ */
 
-const APP_VERSION = '0.6.0';
+const APP_VERSION = '0.7.0';
 const HAS_FSA = typeof window.showOpenFilePicker === 'function';
 
-const md = markdownit({ html: false, linkify: true, typographer: true, breaks: false });
+const md = markdownit({
+  html: false,
+  linkify: true,
+  typographer: true,
+  breaks: false,
+  // Syntax highlight fenced code blocks via highlight.js. Mermaid blocks are
+  // left as plain <code class="language-mermaid"> so the post-render pass can
+  // pick them up and replace them with SVG.
+  highlight: (str, lang) => {
+    const escaped = md.utils.escapeHtml(str);
+    if (lang === 'mermaid') {
+      return `<pre><code class="language-mermaid">${escaped}</code></pre>`;
+    }
+    if (lang && window.hljs && hljs.getLanguage(lang)) {
+      try {
+        return `<pre><code class="hljs language-${lang}">` +
+               hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
+               '</code></pre>';
+      } catch (_) { /* fall through */ }
+    }
+    return `<pre><code class="hljs">${escaped}</code></pre>`;
+  }
+});
 
 // Extended-syntax plugins loaded via UMD scripts in index.html.
 // markdown-it-emoji@3 exposes { full, light, bare }; fall back for older shapes.
@@ -22,6 +44,54 @@ md.use(markdownitTaskLists, { enabled: false, label: false })
   .use(markdownitSup)
   .use(markdownitDeflist)
   .use(markdownItAnchor, { permalink: false });
+
+// Math via texmath + KaTeX. `dollars` accepts $inline$ and $$block$$.
+if (window.texmath && window.katex) {
+  md.use(texmath, {
+    engine: katex,
+    delimiters: 'dollars',
+    katexOptions: { throwOnError: false, strict: false }
+  });
+}
+
+// Mermaid — initialised lazily; theme swapped on dark-mode toggle.
+let mermaidReady = false;
+function ensureMermaid() {
+  if (mermaidReady || !window.mermaid) return;
+  const dark = document.body.classList.contains('theme-dark');
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: dark ? 'dark' : 'default',
+    securityLevel: 'loose'
+  });
+  mermaidReady = true;
+}
+function resetMermaidTheme() {
+  mermaidReady = false;
+  ensureMermaid();
+}
+async function renderMermaidIn(container) {
+  ensureMermaid();
+  if (!window.mermaid) return;
+  const blocks = [...container.querySelectorAll('pre code.language-mermaid')];
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i];
+    const source = block.textContent;
+    const id = 'mermaid-' + Date.now() + '-' + i;
+    try {
+      const { svg } = await mermaid.render(id, source);
+      const wrapper = document.createElement('div');
+      wrapper.className = 'mermaid';
+      wrapper.innerHTML = svg;
+      block.closest('pre').replaceWith(wrapper);
+    } catch (err) {
+      const errDiv = document.createElement('div');
+      errDiv.className = 'mermaid-error';
+      errDiv.textContent = 'Mermaid: ' + (err.message || err);
+      block.closest('pre').replaceWith(errDiv);
+    }
+  }
+}
 
 const DEFAULT_DOC = `# Help
 
@@ -77,6 +147,36 @@ Put \`---\` or \`***\` on its own line:
 
 ---
 
+## Math (KaTeX)
+
+Inline: \`$E = mc^2$\` → $E = mc^2$
+
+Block:
+
+\`\`\`
+$$
+\\int_0^\\infty e^{-x^2}\\,dx = \\frac{\\sqrt{\\pi}}{2}
+$$
+\`\`\`
+
+$$
+\\int_0^\\infty e^{-x^2}\\,dx = \\frac{\\sqrt{\\pi}}{2}
+$$
+
+## Mermaid diagrams
+
+Fenced code blocks with the \`mermaid\` language render as SVG:
+
+\`\`\`mermaid
+flowchart LR
+  Start --> Idea --> Sketch --> Ship
+\`\`\`
+
+\`\`\`mermaid
+flowchart LR
+  Start --> Idea --> Sketch --> Ship
+\`\`\`
+
 ## Footnotes
 
 Reference with \`[^label]\`, then define at the bottom with \`[^label]: text\`. Example: markdown was created in 2004.[^md]
@@ -114,8 +214,12 @@ Pipes separate columns; a row of dashes under the header divides it from the bod
 | Save / Save As        | \`Ctrl+S\` / \`Ctrl+Shift+S\` |
 | Close tab             | \`Alt+W\`          |
 | Vertical tabs         | \`Ctrl+B\`         |
+| Help                  | \`Alt+H\`          |
+| Zoom in / out / reset | \`Alt++\` / \`Alt+-\` / \`Alt+0\` |
 | Editor / Split / Preview | \`Ctrl+1\` / \`2\` / \`3\` |
 | Dark mode             | \`Ctrl+D\`         |
+
+Drag an image file onto the editor to embed it as a data URI. Scroll one pane and the other follows.
 
 Export via the menu (**≡ → Export as HTML / PDF**).
 
@@ -161,6 +265,7 @@ editor.on('change', () => {
   if (wasDirty !== tab.dirty) renderTabs();
   schedulePreview();
   updateStats();
+  schedulePersist();
 });
 
 editor.on('scroll', () => {
@@ -180,6 +285,7 @@ function renderPreview() {
     a.setAttribute('target', '_blank');
     a.setAttribute('rel', 'noopener noreferrer');
   });
+  renderMermaidIn(previewEl);
 }
 function updateStats() {
   const tab = getActive();
@@ -211,6 +317,7 @@ function newTab({ handle = null, content = '', fileName = null, savedContent = n
   tabs.push(tab);
   setActiveTab(tab.id);
   renderTabs();
+  schedulePersist();
   return tab;
 }
 
@@ -253,6 +360,7 @@ async function closeTab(id) {
   }
   const idx = tabs.indexOf(tab);
   tabs.splice(idx, 1);
+  schedulePersist();
   if (tabs.length === 0) { newTab(); return; }
   if (activeTabId === id) setActiveTab(tabs[Math.max(0, idx - 1)].id);
   else renderTabs();
@@ -371,6 +479,7 @@ async function saveTab(tab) {
     tab.dirty = false;
     renderTabs();
     updateStats();
+    schedulePersist();
     return true;
   } catch (err) {
     alert(`Save failed: ${err.message}`);
@@ -402,6 +511,7 @@ async function saveTabAs(tab) {
     tab.fileName = suggested;
     renderTabs();
     updateStats();
+    schedulePersist();
     return true;
   }
 }
@@ -601,10 +711,21 @@ document.querySelectorAll('#view-toggle button').forEach(b => {
 });
 
 /* ---------- Theme ---------- */
+function applyThemeSideEffects() {
+  const dark = document.body.classList.contains('theme-dark');
+  const light = document.getElementById('hljs-light');
+  const darkCss = document.getElementById('hljs-dark');
+  if (light && darkCss) { light.disabled = dark; darkCss.disabled = !dark; }
+  resetMermaidTheme();
+  // Re-render preview so mermaid picks up the new theme and hljs restyles.
+  renderPreview();
+}
+
 function toggleTheme() {
   const dark = document.body.classList.toggle('theme-dark');
   document.body.classList.toggle('theme-light', !dark);
   try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch {}
+  applyThemeSideEffects();
 }
 try {
   if (localStorage.getItem('theme') === 'dark') {
@@ -612,6 +733,124 @@ try {
     document.body.classList.add('theme-dark');
   }
 } catch {}
+
+/* ---------- Font-size zoom ---------- */
+let zoomLevel = 0;
+const EDITOR_BASE_PX = 14;
+const PREVIEW_BASE_PX = 16;
+function applyZoom() {
+  editor.getWrapperElement().style.fontSize = `${EDITOR_BASE_PX + zoomLevel}px`;
+  previewEl.style.fontSize = `${PREVIEW_BASE_PX + zoomLevel}px`;
+  editor.refresh();
+}
+function setZoom(delta) {
+  if (delta === 'reset') zoomLevel = 0;
+  else zoomLevel = Math.max(-4, Math.min(10, zoomLevel + delta));
+  applyZoom();
+  dbSet('kv', 'zoom', zoomLevel);
+}
+
+/* ---------- Scroll sync ---------- */
+const previewPaneEl = document.getElementById('preview-pane');
+let syncingScroll = false;
+function armSyncGuard() {
+  syncingScroll = true;
+  requestAnimationFrame(() => { syncingScroll = false; });
+}
+editor.on('scroll', () => {
+  if (syncingScroll || !document.body.classList.contains('view-split')) return;
+  const info = editor.getScrollInfo();
+  const range = info.height - info.clientHeight;
+  if (range <= 0) return;
+  const ratio = info.top / range;
+  const targetRange = previewPaneEl.scrollHeight - previewPaneEl.clientHeight;
+  if (targetRange <= 0) return;
+  armSyncGuard();
+  previewPaneEl.scrollTop = ratio * targetRange;
+});
+previewPaneEl.addEventListener('scroll', () => {
+  if (syncingScroll || !document.body.classList.contains('view-split')) return;
+  const range = previewPaneEl.scrollHeight - previewPaneEl.clientHeight;
+  if (range <= 0) return;
+  const ratio = previewPaneEl.scrollTop / range;
+  const info = editor.getScrollInfo();
+  const targetRange = info.height - info.clientHeight;
+  if (targetRange <= 0) return;
+  armSyncGuard();
+  editor.scrollTo(0, ratio * targetRange);
+});
+
+/* ---------- Drag-drop image → data URI ---------- */
+editor.on('drop', async (cm, event) => {
+  const items = event.dataTransfer && event.dataTransfer.files;
+  if (!items || items.length === 0) return;
+  const images = [...items].filter(f => f.type.startsWith('image/'));
+  if (images.length === 0) return;
+  event.preventDefault();
+  const from = cm.coordsChar({ left: event.clientX, top: event.clientY });
+  let cursor = from;
+  for (const file of images) {
+    try {
+      const dataUri = await new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(r.result);
+        r.onerror = rej;
+        r.readAsDataURL(file);
+      });
+      const alt = file.name.replace(/\.[^.]+$/, '');
+      const snippet = `![${alt}](${dataUri})\n`;
+      cm.replaceRange(snippet, cursor);
+      cursor = { line: cursor.line + 1, ch: 0 };
+    } catch (err) {
+      console.error('Image drop failed', err);
+    }
+  }
+});
+
+/* ---------- Auto-save / session restore ---------- */
+let persistTimer = null;
+function schedulePersist() {
+  clearTimeout(persistTimer);
+  persistTimer = setTimeout(persistSession, 500);
+}
+async function persistSession() {
+  const activeIndex = tabs.findIndex(t => t.id === activeTabId);
+  const snap = tabs
+    .filter(t => !t.isHelp)   // Help doc regenerates from source; no need to save it.
+    .map(t => ({
+      fileName: t.fileName,
+      doc: t.doc,
+      handle: t.handle || null,
+      lastSavedDoc: t.lastSavedDoc
+    }));
+  try {
+    await dbSet('kv', 'session', { tabs: snap, activeIndex });
+  } catch { /* IDB full or unavailable — silently ignore */ }
+}
+async function restoreSession() {
+  let sess;
+  try { sess = await dbGet('kv', 'session'); } catch { return false; }
+  if (!sess || !sess.tabs || sess.tabs.length === 0) return false;
+  for (const t of sess.tabs) {
+    let usableHandle = null;
+    if (t.handle) {
+      try {
+        const perm = await t.handle.queryPermission({ mode: 'read' });
+        if (perm === 'granted') usableHandle = t.handle;
+        else usableHandle = t.handle; // keep it; user re-grants on next save
+      } catch { /* handle no longer valid */ }
+    }
+    newTab({
+      handle: usableHandle,
+      content: t.doc || '',
+      fileName: t.fileName,
+      savedContent: t.lastSavedDoc
+    });
+  }
+  const target = tabs[Math.min(Math.max(0, sess.activeIndex || 0), tabs.length - 1)];
+  if (target) setActiveTab(target.id);
+  return true;
+}
 
 /* ---------- New tab button ---------- */
 document.getElementById('new-tab-btn').addEventListener('click', () => newTab());
@@ -845,6 +1084,10 @@ window.addEventListener('keydown', (e) => {
     if      (key === 'n') cmd = 'new-tab';
     else if (key === 'w') cmd = 'close-tab';
     else if (key === 'h') cmd = 'toggle-help';
+    // Font zoom on Alt+= / Alt+- / Alt+0. Chrome intercepts the Ctrl variants.
+    else if (key === '=' || key === '+') { e.preventDefault(); setZoom(+1); return; }
+    else if (key === '-') { e.preventDefault(); setZoom(-1); return; }
+    else if (key === '0') { e.preventDefault(); setZoom('reset'); return; }
     if (cmd) { e.preventDefault(); dispatchCommand(cmd); return; }
   }
 
@@ -885,11 +1128,17 @@ async function bootstrap() {
     refreshVtabsMenuLabel();
     const viewMode = await dbGet('kv', 'viewMode');
     if (viewMode && viewMode !== 'split') setViewMode(viewMode);
+    const savedZoom = await dbGet('kv', 'zoom');
+    if (typeof savedZoom === 'number') { zoomLevel = savedZoom; applyZoom(); }
   } catch { /* IndexedDB unavailable — private browsing? — proceed without persistence. */ }
 
   document.getElementById('version-menu-value').textContent = APP_VERSION;
 
-  newTab();
+  // Sync hljs stylesheet / mermaid theme with whatever theme was applied above.
+  applyThemeSideEffects();
+
+  const restored = await restoreSession();
+  if (!restored) newTab();
   refreshRecentMenu();
 }
 
