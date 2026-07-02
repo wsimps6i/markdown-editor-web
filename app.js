@@ -1062,6 +1062,9 @@ async function dispatchCommand(cmd) {
     case 'close-tab':      if (tab) closeTab(tab.id); break;
     case 'toggle-vtabs':   await toggleVerticalTabs(); break;
     case 'toggle-theme':   toggleTheme(); break;
+    case 'zoom-in':        setZoom(+1); break;
+    case 'zoom-out':       setZoom(-1); break;
+    case 'zoom-reset':     setZoom('reset'); break;
     case 'toggle-help':    await toggleHelp(); break;
     case 'show-version':   await showVersion(); break;
     case 'find':           editor.execCommand('find'); break;
