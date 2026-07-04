@@ -49,8 +49,10 @@
     <div class="menu-sep"></div>
     <button data-cmd="toggle-vtabs"   role="menuitem"><span id="toggle-vtabs-label">Vertical Tabs</span><kbd>Ctrl+B</kbd></button>
     <button data-cmd="toggle-scroll-sync" role="menuitem"><span id="toggle-scroll-sync-label">Sync Scrolling</span></button>
+    <button data-cmd="toggle-focus"   role="menuitem"><span id="toggle-focus-label">Focus Mode</span></button>
     <button data-cmd="toggle-theme"   role="menuitem"><span id="toggle-theme-label">Dark Mode</span><kbd>Ctrl+D</kbd></button>
     <div class="menu-sep"></div>
+    <button data-cmd="show-cheatsheet" role="menuitem"><span>Cheat Sheet</span></button>
     <button data-cmd="toggle-help" role="menuitem"><span id="toggle-help-label">Help</span><kbd>Alt+H</kbd></button>
     <button data-cmd="show-version" role="menuitem"><span>Version</span><span id="version-menu-value" class="menu-value"></span></button>
     </div>
@@ -70,6 +72,57 @@
     <div id="splitter" aria-hidden="true"></div>
     <div id="preview-pane">
       <article id="preview" class="markdown-body"></article>
+    </div>
+  </div>
+
+  <div id="cheatsheet" hidden role="dialog" aria-modal="true" aria-labelledby="cheatsheet-title">
+    <div id="cheatsheet-backdrop"></div>
+    <div id="cheatsheet-panel">
+      <div id="cheatsheet-header">
+        <h3 id="cheatsheet-title">Markdown Cheat Sheet</h3>
+        <button id="cheatsheet-close" title="Close (Esc)" aria-label="Close">&times;</button>
+      </div>
+      <div id="cheatsheet-body">
+        <div class="cs-col">
+          <h4>Basics</h4>
+          <dl>
+            <dt>Bold</dt>            <dd><code>**text**</code></dd>
+            <dt>Italic</dt>          <dd><code>*text*</code></dd>
+            <dt>Strikethrough</dt>   <dd><code>~~text~~</code></dd>
+            <dt>Highlight</dt>       <dd><code>==text==</code></dd>
+            <dt>Inline code</dt><dd><code>`text`</code></dd>
+            <dt>Link</dt>            <dd><code>[label](url)</code></dd>
+            <dt>Image</dt>           <dd><code>![alt](url)</code></dd>
+            <dt>Sub / Sup</dt>       <dd><code>H~2~O · X^2^</code></dd>
+          </dl>
+        </div>
+        <div class="cs-col">
+          <h4>Blocks</h4>
+          <dl>
+            <dt>Heading</dt>         <dd><code># … ######</code></dd>
+            <dt>Blockquote</dt>      <dd><code>&gt; text</code></dd>
+            <dt>Unordered list</dt>  <dd><code>- item</code></dd>
+            <dt>Ordered list</dt>    <dd><code>1. item</code></dd>
+            <dt>Task list</dt>       <dd><code>- [ ] · - [x]</code></dd>
+            <dt>Code fence</dt>      <dd><code>```lang … ```</code></dd>
+            <dt>Table</dt>           <dd><code>| a | b | / | --- | --- |</code></dd>
+            <dt>Horizontal rule</dt> <dd><code>---</code></dd>
+          </dl>
+        </div>
+        <div class="cs-col">
+          <h4>Extended</h4>
+          <dl>
+            <dt>Footnote</dt>        <dd><code>[^1] · [^1]: text</code></dd>
+            <dt>Heading id</dt>      <dd><code>### h {#id}</code></dd>
+            <dt>Definition</dt>      <dd><code>term / : def</code></dd>
+            <dt>Emoji</dt>           <dd><code>:sparkles:</code></dd>
+            <dt>Math inline</dt>     <dd><code>$E=mc^2$</code></dd>
+            <dt>Math block</dt>      <dd><code>$$ … $$</code></dd>
+            <dt>Mermaid</dt>         <dd><code>```mermaid … ```</code></dd>
+            <dt>Auto-link</dt>       <dd><code>&lt;https://…&gt;</code></dd>
+          </dl>
+        </div>
+      </div>
     </div>
   </div>
 

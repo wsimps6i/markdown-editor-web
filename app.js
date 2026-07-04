@@ -275,6 +275,64 @@ editor.on('scroll', () => {
   if (tab) tab.scrollPos = editor.getScrollInfo();
 });
 
+editor.on('cursorActivity', () => {
+  updateStats();
+  updateFocusHighlight();
+});
+
+/* ---------- Focus mode ---------- */
+let focusModeOn = false;
+let focusRange = null;
+function updateFocusHighlight() {
+  if (!focusModeOn) return;
+  const line = editor.getCursor().line;
+  const total = editor.lineCount();
+  let start = line, end = line;
+  while (start > 0 && editor.getLine(start - 1).trim() !== '') start--;
+  while (end < total - 1 && editor.getLine(end + 1).trim() !== '') end++;
+  if (focusRange && focusRange.start === start && focusRange.end === end) return;
+  if (focusRange) {
+    for (let i = focusRange.start; i <= focusRange.end && i < total; i++) {
+      editor.removeLineClass(i, 'wrap', 'focus-active');
+    }
+  }
+  for (let i = start; i <= end; i++) {
+    editor.addLineClass(i, 'wrap', 'focus-active');
+  }
+  focusRange = { start, end };
+}
+function clearFocusHighlight() {
+  if (focusRange) {
+    const total = editor.lineCount();
+    for (let i = focusRange.start; i <= focusRange.end && i < total; i++) {
+      editor.removeLineClass(i, 'wrap', 'focus-active');
+    }
+    focusRange = null;
+  }
+}
+async function toggleFocusMode() {
+  focusModeOn = !focusModeOn;
+  document.body.classList.toggle('focus-mode', focusModeOn);
+  refreshFocusMenuLabel();
+  if (focusModeOn) updateFocusHighlight();
+  else clearFocusHighlight();
+  await dbSet('kv', 'focusMode', focusModeOn);
+}
+function refreshFocusMenuLabel() {
+  const el = document.getElementById('toggle-focus-label');
+  if (el) el.textContent = focusModeOn ? '✓ Focus Mode' : 'Focus Mode';
+}
+
+/* ---------- Cheat sheet modal ---------- */
+const cheatEl = document.getElementById('cheatsheet');
+function openCheatsheet() { cheatEl.hidden = false; }
+function closeCheatsheet() { cheatEl.hidden = true; }
+document.getElementById('cheatsheet-close').addEventListener('click', closeCheatsheet);
+document.getElementById('cheatsheet-backdrop').addEventListener('click', closeCheatsheet);
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !cheatEl.hidden) closeCheatsheet();
+});
+
 let previewTimer = null;
 function schedulePreview() {
   clearTimeout(previewTimer);
@@ -289,12 +347,28 @@ function renderPreview() {
   });
   renderMermaidIn(previewEl);
 }
+function countWords(s) { return s.trim() ? s.trim().split(/\s+/).length : 0; }
+function readingTime(words) {
+  if (words === 0) return '';
+  const minutes = Math.max(1, Math.round(words / 200));
+  return ` · ${minutes} min read`;
+}
 function updateStats() {
   const tab = getActive();
   if (!tab) { statusStatsEl.textContent = ''; return; }
   const text = tab.doc || '';
-  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-  statusStatsEl.textContent = `${words} words · ${text.length} chars · ${text.split('\n').length} lines`;
+  const words = countWords(text);
+  const chars = text.length;
+  const lines = text.split('\n').length;
+  // If the user has an active selection, show selection counts instead so it
+  // works like Word / VS Code / iA Writer's status readout.
+  const sel = editor.somethingSelected() ? editor.getSelection() : '';
+  if (sel) {
+    const selWords = countWords(sel);
+    statusStatsEl.textContent = `${selWords} of ${words} words · ${sel.length} of ${chars} chars selected`;
+  } else {
+    statusStatsEl.textContent = `${words} words · ${chars} chars · ${lines} lines${readingTime(words)}`;
+  }
   statusFileEl.textContent = tab.fileName + (tab.handle ? '' : ' (unsaved)');
   document.title = `Markdown Editor ${APP_VERSION}`;
 }
@@ -1086,7 +1160,9 @@ const COMMANDS = [
   { id: 'zoom-reset',        label: 'Reset Zoom',             shortcut: 'Alt+0' },
   { id: 'toggle-vtabs',      label: 'Toggle Vertical Tabs',   shortcut: 'Ctrl+B' },
   { id: 'toggle-scroll-sync',label: 'Toggle Sync Scrolling' },
+  { id: 'toggle-focus',      label: 'Toggle Focus Mode' },
   { id: 'toggle-theme',      label: 'Toggle Dark Mode',       shortcut: 'Ctrl+D' },
+  { id: 'show-cheatsheet',   label: 'Show Cheat Sheet' },
   { id: 'view-editor',       label: 'View: Editor Only',      shortcut: 'Ctrl+1' },
   { id: 'view-split',        label: 'View: Split',            shortcut: 'Ctrl+2' },
   { id: 'view-preview',      label: 'View: Preview Only',     shortcut: 'Ctrl+3' },
@@ -1202,7 +1278,9 @@ async function dispatchCommand(cmd) {
     case 'close-tab':      if (tab) closeTab(tab.id); break;
     case 'toggle-vtabs':   await toggleVerticalTabs(); break;
     case 'toggle-scroll-sync': await toggleScrollSync(); break;
+    case 'toggle-focus':   await toggleFocusMode(); break;
     case 'toggle-theme':   toggleTheme(); break;
+    case 'show-cheatsheet': openCheatsheet(); break;
     case 'zoom-in':        setZoom(+1); break;
     case 'zoom-out':       setZoom(-1); break;
     case 'zoom-reset':     setZoom('reset'); break;
@@ -1283,6 +1361,12 @@ async function bootstrap() {
     const savedSync = await dbGet('kv', 'scrollSync');
     if (typeof savedSync === 'boolean') scrollSyncEnabled = savedSync;
     refreshScrollSyncMenuLabel();
+    const savedFocus = await dbGet('kv', 'focusMode');
+    if (savedFocus === true) {
+      focusModeOn = true;
+      document.body.classList.add('focus-mode');
+    }
+    refreshFocusMenuLabel();
   } catch { /* IndexedDB unavailable — private browsing? — proceed without persistence. */ }
 
   document.getElementById('version-menu-value').textContent = APP_VERSION;
