@@ -48,6 +48,7 @@ Push to `main`, enable GitHub Pages with source = "Deploy from a branch" pointin
 
 | Action                       | Shortcut             |
 | ---------------------------- | -------------------- |
+| Command palette              | `Ctrl+Shift+P`       |
 | New tab                      | `Alt+N`              |
 | Open file                    | `Ctrl+O`             |
 | Save                         | `Ctrl+S`             |

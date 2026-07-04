@@ -209,6 +209,7 @@ Pipes separate columns; a row of dashes under the header divides it from the bod
 
 | Action                | Shortcut         |
 | --------------------- | ---------------- |
+| Command palette       | \`Ctrl+Shift+P\`   |
 | New tab               | \`Alt+N\`          |
 | Open file             | \`Ctrl+O\`         |
 | Save / Save As        | \`Ctrl+S\` / \`Ctrl+Shift+S\` |
@@ -1069,10 +1070,129 @@ menuEl.querySelectorAll('button[data-cmd]').forEach(b => {
   });
 });
 
+/* ---------- Command palette ---------- */
+const COMMANDS = [
+  { id: 'new-tab',           label: 'New Tab',                shortcut: 'Alt+N' },
+  { id: 'open',              label: 'Open File…',             shortcut: 'Ctrl+O' },
+  { id: 'save',              label: 'Save',                   shortcut: 'Ctrl+S' },
+  { id: 'save-as',           label: 'Save As…',               shortcut: 'Ctrl+Shift+S' },
+  { id: 'export-html',       label: 'Export as HTML…' },
+  { id: 'export-pdf',        label: 'Export as PDF…' },
+  { id: 'close-tab',         label: 'Close Tab',              shortcut: 'Alt+W' },
+  { id: 'find',              label: 'Find…',                  shortcut: 'Alt+F' },
+  { id: 'replace',           label: 'Replace…',               shortcut: 'Alt+R' },
+  { id: 'zoom-in',           label: 'Zoom In',                shortcut: 'Alt++' },
+  { id: 'zoom-out',          label: 'Zoom Out',               shortcut: 'Alt+-' },
+  { id: 'zoom-reset',        label: 'Reset Zoom',             shortcut: 'Alt+0' },
+  { id: 'toggle-vtabs',      label: 'Toggle Vertical Tabs',   shortcut: 'Ctrl+B' },
+  { id: 'toggle-scroll-sync',label: 'Toggle Sync Scrolling' },
+  { id: 'toggle-theme',      label: 'Toggle Dark Mode',       shortcut: 'Ctrl+D' },
+  { id: 'view-editor',       label: 'View: Editor Only',      shortcut: 'Ctrl+1' },
+  { id: 'view-split',        label: 'View: Split',            shortcut: 'Ctrl+2' },
+  { id: 'view-preview',      label: 'View: Preview Only',     shortcut: 'Ctrl+3' },
+  { id: 'toggle-help',       label: 'Show Help',              shortcut: 'Alt+H' },
+  { id: 'show-version',      label: 'About / Version' }
+];
+
+const paletteEl = document.getElementById('palette');
+const paletteInputEl = document.getElementById('palette-input');
+const paletteListEl = document.getElementById('palette-list');
+let paletteOpen = false;
+let paletteFiltered = [];
+let paletteSelected = 0;
+
+function openPalette() {
+  paletteOpen = true;
+  paletteEl.hidden = false;
+  paletteInputEl.value = '';
+  paletteFiltered = COMMANDS.slice();
+  paletteSelected = 0;
+  renderPalette();
+  paletteInputEl.focus();
+}
+function closePalette() {
+  paletteOpen = false;
+  paletteEl.hidden = true;
+  editor.focus();
+}
+function scorePalette(query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return COMMANDS.slice();
+  const scored = [];
+  for (const c of COMMANDS) {
+    const label = c.label.toLowerCase();
+    const shortcut = (c.shortcut || '').toLowerCase();
+    let score = 0;
+    if (label.startsWith(q))         score = 3;
+    else if (label.includes(q))      score = 2;
+    else if (shortcut.includes(q))   score = 1;
+    if (score > 0) scored.push({ cmd: c, score });
+  }
+  scored.sort((a, b) => b.score - a.score);
+  return scored.map(s => s.cmd);
+}
+function renderPalette() {
+  paletteListEl.innerHTML = '';
+  if (paletteFiltered.length === 0) {
+    const empty = document.createElement('li');
+    empty.className = 'palette-empty';
+    empty.textContent = 'No matching commands';
+    paletteListEl.appendChild(empty);
+    return;
+  }
+  paletteFiltered.forEach((cmd, i) => {
+    const li = document.createElement('li');
+    li.className = 'palette-item' + (i === paletteSelected ? ' active' : '');
+    li.setAttribute('role', 'option');
+    const label = document.createElement('span');
+    label.textContent = cmd.label;
+    li.appendChild(label);
+    if (cmd.shortcut) {
+      const k = document.createElement('kbd');
+      k.textContent = cmd.shortcut;
+      li.appendChild(k);
+    }
+    li.addEventListener('click', () => executePaletteItem(i));
+    paletteListEl.appendChild(li);
+  });
+  const active = paletteListEl.querySelector('.palette-item.active');
+  if (active) active.scrollIntoView({ block: 'nearest' });
+}
+function executePaletteItem(index) {
+  const cmd = paletteFiltered[index];
+  if (!cmd) return;
+  closePalette();
+  dispatchCommand(cmd.id);
+}
+paletteInputEl.addEventListener('input', () => {
+  paletteFiltered = scorePalette(paletteInputEl.value);
+  paletteSelected = 0;
+  renderPalette();
+});
+paletteInputEl.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    paletteSelected = Math.min(paletteSelected + 1, paletteFiltered.length - 1);
+    renderPalette();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    paletteSelected = Math.max(paletteSelected - 1, 0);
+    renderPalette();
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    executePaletteItem(paletteSelected);
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    closePalette();
+  }
+});
+document.getElementById('palette-backdrop').addEventListener('click', closePalette);
+
 /* ---------- Command dispatch ---------- */
 async function dispatchCommand(cmd) {
   const tab = getActive();
   switch (cmd) {
+    case 'command-palette': openPalette(); break;
     case 'new-tab':        newTab(); break;
     case 'open':           HAS_FSA ? await openFilesViaFSA() : await openFilesViaUpload(); break;
     case 'save':           if (tab) await saveTab(tab); break;
@@ -1098,6 +1218,7 @@ async function dispatchCommand(cmd) {
 
 /* ---------- Keyboard shortcuts ---------- */
 window.addEventListener('keydown', (e) => {
+  if (paletteOpen) return; // palette owns its own key handling
   const key = e.key.toLowerCase();
   const shift = e.shiftKey;
   const alt = e.altKey;
@@ -1125,6 +1246,7 @@ window.addEventListener('keydown', (e) => {
   else if (key === 's' && !shift) cmd = 'save';
   else if (key === 's' && shift)  cmd = 'save-as';
   else if (key === 'b' && !shift) cmd = 'toggle-vtabs';
+  else if (key === 'p' && shift)  cmd = 'command-palette';
   else if (key === 'd' && !shift) cmd = 'toggle-theme';
   else if (key === '1') cmd = 'view-editor';
   else if (key === '2') cmd = 'view-split';
