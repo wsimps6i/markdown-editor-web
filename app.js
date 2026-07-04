@@ -1170,9 +1170,128 @@ async function exportHtml() {
 }
 
 function exportPdf() {
-  // Browser's native print → "Save as PDF". Uses a hidden iframe so no
-  // new browser tab is spawned.
-  const html = buildExportHtml();
+  const dialog = document.getElementById('pdf-dialog');
+  if (!dialog) return;
+  const coverBox = document.getElementById('pdf-cover');
+  const coverFields = document.getElementById('pdf-cover-fields');
+  coverFields.hidden = !coverBox.checked;
+  coverBox.onchange = () => { coverFields.hidden = !coverBox.checked; };
+
+  const onKey = (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); close(); }
+    else if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') { e.preventDefault(); accept(); }
+  };
+  const onClick = (e) => {
+    const action = e.target.closest('[data-action]')?.dataset.action;
+    if (action === 'cancel') close();
+    else if (action === 'ok') accept();
+    else if (e.target.classList.contains('modal-backdrop')) close();
+  };
+  const close = () => {
+    dialog.hidden = true;
+    dialog.removeEventListener('click', onClick);
+    document.removeEventListener('keydown', onKey, true);
+  };
+  const accept = () => {
+    const options = collectPdfOptions();
+    close();
+    doExportPdf(options);
+  };
+
+  dialog.addEventListener('click', onClick);
+  document.addEventListener('keydown', onKey, true);
+  dialog.hidden = false;
+  document.getElementById('pdf-size').focus();
+}
+
+function collectPdfOptions() {
+  return {
+    pageSize: document.getElementById('pdf-size').value,
+    orientation: document.getElementById('pdf-orientation').value,
+    marginMm: parseInt(document.getElementById('pdf-margins').value, 10),
+    coverPage: document.getElementById('pdf-cover').checked ? {
+      title: document.getElementById('pdf-cover-title').value.trim(),
+      subtitle: document.getElementById('pdf-cover-subtitle').value.trim(),
+      author: document.getElementById('pdf-cover-author').value.trim()
+    } : null,
+    includeToc: document.getElementById('pdf-toc').checked
+  };
+}
+
+const PDF_EXTRA_CSS = `
+@page { size: %SIZE% %ORIENTATION%; margin: %MARGIN%mm; }
+.pdf-cover {
+  min-height: 90vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  page-break-after: always;
+}
+.pdf-cover h1 { font-size: 3em; margin: 0 0 0.3em; border: none; padding: 0; }
+.pdf-cover h2 { font-size: 1.35em; color: #666; font-weight: 400; border: none; margin: 0 0 2em; padding: 0; }
+.pdf-cover-author { font-size: 1.15em; margin: 0.5em 0 0; }
+.pdf-cover-date { color: #888; margin-top: 3em; font-size: 0.95em; }
+.pdf-toc { page-break-after: always; }
+.pdf-toc h2 { border-bottom: 1px solid #ccc; padding-bottom: 0.3em; }
+.pdf-toc ul { list-style: none; padding: 0; margin: 0; }
+.pdf-toc li { margin: 0.3em 0; line-height: 1.5; }
+.pdf-toc a { color: inherit; text-decoration: none; }
+.pdf-toc .toc-l1 { font-weight: 600; }
+.pdf-toc .toc-l2 { padding-left: 1.5em; }
+.pdf-toc .toc-l3 { padding-left: 3em; }
+.pdf-toc .toc-l4 { padding-left: 4.5em; font-size: 0.95em; }
+.pdf-toc .toc-l5, .pdf-toc .toc-l6 { padding-left: 6em; font-size: 0.9em; color: #666; }
+`;
+
+function buildPdfTocHtml(bodyHtml) {
+  const temp = document.createElement('div');
+  temp.innerHTML = bodyHtml;
+  const headings = temp.querySelectorAll('h1, h2, h3, h4, h5, h6');
+  if (headings.length === 0) return '';
+  const items = [...headings].map(h => {
+    const level = parseInt(h.tagName.substring(1), 10);
+    const id = h.id;
+    const text = h.textContent;
+    const linked = id ? `<a href="#${id}">${escapeHtml(text)}</a>` : escapeHtml(text);
+    return `<li class="toc-l${level}">${linked}</li>`;
+  }).join('');
+  return `<nav class="pdf-toc"><h2>Table of contents</h2><ul>${items}</ul></nav>`;
+}
+
+function buildPdfHtml(options) {
+  const tab = getActive();
+  if (!tab) return null;
+  const bodyHtml = md.render(tab.doc || '');
+  const filename = (tab.fileName || 'document').replace(/\.[^.]+$/, '');
+
+  const pageCss = PDF_EXTRA_CSS
+    .replace('%SIZE%', options.pageSize)
+    .replace('%ORIENTATION%', options.orientation)
+    .replace('%MARGIN%', String(options.marginMm));
+
+  let front = '';
+  if (options.coverPage) {
+    const cp = options.coverPage;
+    const title = cp.title || filename;
+    front += `<section class="pdf-cover"><div>` +
+      `<h1>${escapeHtml(title)}</h1>` +
+      (cp.subtitle ? `<h2>${escapeHtml(cp.subtitle)}</h2>` : '') +
+      (cp.author ? `<p class="pdf-cover-author">${escapeHtml(cp.author)}</p>` : '') +
+      `<p class="pdf-cover-date">${new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</p>` +
+      `</div></section>`;
+  }
+  if (options.includeToc) front += buildPdfTocHtml(bodyHtml);
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>${escapeHtml(filename)}</title>
+<style>${EXPORT_CSS}
+${pageCss}</style></head>
+<body>${front}${bodyHtml}</body></html>`;
+}
+
+function doExportPdf(options) {
+  const html = buildPdfHtml(options);
   if (!html) return;
 
   const iframe = document.createElement('iframe');
@@ -1194,15 +1313,10 @@ function exportPdf() {
     } catch (err) {
       alert(`PDF export failed: ${err.message}`);
     }
-    // Remove the iframe once the print dialog has closed. print() is synchronous
-    // in Chromium — it returns after the user saves or cancels — but leave a
-    // small grace window so the browser can finish streaming to disk.
     setTimeout(() => iframe.remove(), 1000);
   };
-
-  // Wait for the iframe's stylesheet/fonts to settle before printing.
-  if (iframe.contentDocument.readyState === 'complete') setTimeout(doPrint, 100);
-  else iframe.onload = () => setTimeout(doPrint, 100);
+  if (iframe.contentDocument.readyState === 'complete') setTimeout(doPrint, 150);
+  else iframe.onload = () => setTimeout(doPrint, 150);
 }
 
 /* ---------- Menu bar ---------- */

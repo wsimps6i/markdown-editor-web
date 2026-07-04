@@ -83,6 +83,58 @@
     </div>
   </div>
 
+  <div id="pdf-dialog" hidden role="dialog" aria-modal="true" aria-labelledby="pdf-dialog-title">
+    <div class="modal-backdrop"></div>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h3 id="pdf-dialog-title">Export as PDF</h3>
+        <button class="modal-close" data-action="cancel" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body pdf-form">
+        <fieldset>
+          <legend>Page</legend>
+          <label>Size
+            <select id="pdf-size">
+              <option value="A4">A4 (210 × 297 mm)</option>
+              <option value="Letter">Letter (8.5 × 11 in)</option>
+              <option value="Legal">Legal (8.5 × 14 in)</option>
+              <option value="A3">A3 (297 × 420 mm)</option>
+              <option value="A5">A5 (148 × 210 mm)</option>
+            </select>
+          </label>
+          <label>Orientation
+            <select id="pdf-orientation">
+              <option value="portrait">Portrait</option>
+              <option value="landscape">Landscape</option>
+            </select>
+          </label>
+          <label>Margins
+            <select id="pdf-margins">
+              <option value="20">Normal (20 mm)</option>
+              <option value="10">Narrow (10 mm)</option>
+              <option value="30">Wide (30 mm)</option>
+              <option value="0">None</option>
+            </select>
+          </label>
+        </fieldset>
+        <fieldset>
+          <legend>Front matter</legend>
+          <label><input type="checkbox" id="pdf-cover"> Cover page</label>
+          <div id="pdf-cover-fields" hidden>
+            <input type="text" id="pdf-cover-title" placeholder="Title (defaults to filename)">
+            <input type="text" id="pdf-cover-subtitle" placeholder="Subtitle (optional)">
+            <input type="text" id="pdf-cover-author" placeholder="Author (optional)">
+          </div>
+          <label><input type="checkbox" id="pdf-toc"> Table of contents</label>
+        </fieldset>
+      </div>
+      <div class="modal-buttons">
+        <button data-action="cancel">Cancel</button>
+        <button data-action="ok" class="primary">Export</button>
+      </div>
+    </div>
+  </div>
+
   <div id="cheatsheet" hidden role="dialog" aria-modal="true" aria-labelledby="cheatsheet-title">
     <div id="cheatsheet-backdrop"></div>
     <div id="cheatsheet-panel">
