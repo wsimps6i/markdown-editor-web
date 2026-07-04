@@ -70,19 +70,22 @@ html, body {
 
 body {
   display: grid;
-  grid-template-columns: 0px 1fr;
+  grid-template-columns: 0px 1fr 0px;
   grid-template-rows: var(--tab-bar-h) 1fr var(--status-bar-h);
   height: 100vh;
   transition: grid-template-columns 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
-body.menu-open { grid-template-columns: 280px 1fr; }
+body.menu-open             { grid-template-columns: 280px 1fr 0px; }
+body.outline-on            { grid-template-columns: 0px 1fr 240px; }
+body.menu-open.outline-on  { grid-template-columns: 280px 1fr 240px; }
 
-/* The menu occupies column 1 spanning all three rows; everything else lives in
-   column 2. Position:fixed elements (dialogs, banner) are outside grid flow. */
+/* Column 1: menu · Column 2: main content · Column 3: outline. Position:fixed
+   elements (dialogs, palette, banner) are outside grid flow. */
 #app-menu   { grid-column: 1; grid-row: 1 / -1; }
 #tab-bar    { grid-column: 2; grid-row: 1; }
 #workspace  { grid-column: 2; grid-row: 2; }
 #status-bar { grid-column: 2; grid-row: 3; }
+#outline    { grid-column: 3; grid-row: 1 / -1; }
 
 /* ---------- Tab bar ---------- */
 #tab-bar {
@@ -616,6 +619,63 @@ body.theme-dark .markdown-body mark {
   border: none;
 }
 .markdown-body .footnote-backref { text-decoration: none; margin-left: 0.3em; }
+
+/* ---------- Outline panel (grid column 3, animates 0 → 240px) ---------- */
+#outline {
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-soft);
+  border-left: 1px solid var(--border);
+}
+body:not(.outline-on) #outline { border-left: none; }
+#outline-inner {
+  width: 240px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#outline-header {
+  padding: 8px 12px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-soft);
+  flex-shrink: 0;
+}
+#outline-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+  margin: 0;
+  list-style: none;
+}
+.outline-item {
+  padding: 3px 12px 3px 10px;
+  cursor: pointer;
+  color: var(--fg-soft);
+  font-size: 12.5px;
+  border-left: 2px solid transparent;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: none;
+}
+.outline-item:hover { background: var(--bg-hover); color: var(--fg); }
+.outline-item.level-1 { padding-left: 10px; font-weight: 600; }
+.outline-item.level-2 { padding-left: 22px; }
+.outline-item.level-3 { padding-left: 34px; }
+.outline-item.level-4 { padding-left: 46px; font-size: 11.5px; }
+.outline-item.level-5 { padding-left: 58px; font-size: 11.5px; color: var(--fg-muted); }
+.outline-item.level-6 { padding-left: 70px; font-size: 11.5px; color: var(--fg-muted); }
+.outline-empty {
+  padding: 24px 14px;
+  text-align: center;
+  color: var(--fg-muted);
+  font-size: 12px;
+}
 
 /* ---------- Focus mode (dim non-active paragraph) ---------- */
 body.focus-mode .CodeMirror-line { transition: opacity 0.18s; opacity: 0.28; }

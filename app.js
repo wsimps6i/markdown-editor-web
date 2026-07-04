@@ -280,6 +280,92 @@ editor.on('cursorActivity', () => {
   updateFocusHighlight();
 });
 
+/* ---------- Outline panel ---------- */
+const outlineListEl = document.getElementById('outline-list');
+let outlineOn = false;
+
+function extractHeadings(doc) {
+  // markdown-it exposes source line numbers on block tokens via .map.
+  // heading_open token → next token is inline text.
+  const tokens = md.parse(doc || '', {});
+  const headings = [];
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i];
+    if (t.type === 'heading_open') {
+      const level = parseInt(t.tag.substring(1), 10);
+      const text = tokens[i + 1] ? tokens[i + 1].content : '';
+      const line = t.map ? t.map[0] : 0;
+      headings.push({ level, text, line });
+    }
+  }
+  return headings;
+}
+
+function renderOutline() {
+  if (!outlineOn) return;
+  outlineListEl.innerHTML = '';
+  const tab = getActive();
+  const headings = tab ? extractHeadings(tab.doc) : [];
+  if (headings.length === 0) {
+    const empty = document.createElement('li');
+    empty.className = 'outline-empty';
+    empty.textContent = 'No headings in this document';
+    outlineListEl.appendChild(empty);
+    return;
+  }
+  for (const h of headings) {
+    const li = document.createElement('li');
+    li.className = 'outline-item level-' + h.level;
+    li.textContent = h.text;
+    li.title = h.text;
+    li.addEventListener('click', () => {
+      editor.setCursor({ line: h.line, ch: 0 });
+      editor.scrollIntoView({ line: h.line, ch: 0 }, 60);
+      editor.focus();
+    });
+    outlineListEl.appendChild(li);
+  }
+}
+
+async function toggleOutline() {
+  outlineOn = !outlineOn;
+  document.body.classList.toggle('outline-on', outlineOn);
+  refreshOutlineMenuLabel();
+  if (outlineOn) renderOutline();
+  requestAnimationFrame(() => editor.refresh());
+  await dbSet('kv', 'outline', outlineOn);
+}
+function refreshOutlineMenuLabel() {
+  const el = document.getElementById('toggle-outline-label');
+  if (el) el.textContent = outlineOn ? '✓ Outline' : 'Outline';
+}
+
+/* ---------- Paste image from clipboard → data URI ---------- */
+document.addEventListener('paste', async (e) => {
+  // Only intercept when the editor has focus; leave palette / dialogs alone.
+  if (!editor.hasFocus()) return;
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  const imgItem = [...items].find(it => it.type && it.type.startsWith('image/'));
+  if (!imgItem) return;
+  const blob = imgItem.getAsFile();
+  if (!blob) return;
+  e.preventDefault();
+  try {
+    const dataUri = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result);
+      r.onerror = rej;
+      r.readAsDataURL(blob);
+    });
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+    const alt = 'image-' + stamp;
+    editor.replaceSelection(`![${alt}](${dataUri})\n`);
+  } catch (err) {
+    console.error('Image paste failed', err);
+  }
+});
+
 /* ---------- Focus mode ---------- */
 let focusModeOn = false;
 let focusRange = null;
@@ -346,6 +432,7 @@ function renderPreview() {
     a.setAttribute('rel', 'noopener noreferrer');
   });
   renderMermaidIn(previewEl);
+  if (outlineOn) renderOutline();
 }
 function countWords(s) { return s.trim() ? s.trim().split(/\s+/).length : 0; }
 function readingTime(words) {
@@ -1160,6 +1247,7 @@ const COMMANDS = [
   { id: 'zoom-reset',        label: 'Reset Zoom',             shortcut: 'Alt+0' },
   { id: 'toggle-vtabs',      label: 'Toggle Vertical Tabs',   shortcut: 'Ctrl+B' },
   { id: 'toggle-scroll-sync',label: 'Toggle Sync Scrolling' },
+  { id: 'toggle-outline',    label: 'Toggle Outline' },
   { id: 'toggle-focus',      label: 'Toggle Focus Mode' },
   { id: 'toggle-theme',      label: 'Toggle Dark Mode',       shortcut: 'Ctrl+D' },
   { id: 'show-cheatsheet',   label: 'Show Cheat Sheet' },
@@ -1278,6 +1366,7 @@ async function dispatchCommand(cmd) {
     case 'close-tab':      if (tab) closeTab(tab.id); break;
     case 'toggle-vtabs':   await toggleVerticalTabs(); break;
     case 'toggle-scroll-sync': await toggleScrollSync(); break;
+    case 'toggle-outline': await toggleOutline(); break;
     case 'toggle-focus':   await toggleFocusMode(); break;
     case 'toggle-theme':   toggleTheme(); break;
     case 'show-cheatsheet': openCheatsheet(); break;
@@ -1367,6 +1456,12 @@ async function bootstrap() {
       document.body.classList.add('focus-mode');
     }
     refreshFocusMenuLabel();
+    const savedOutline = await dbGet('kv', 'outline');
+    if (savedOutline === true) {
+      outlineOn = true;
+      document.body.classList.add('outline-on');
+    }
+    refreshOutlineMenuLabel();
   } catch { /* IndexedDB unavailable — private browsing? — proceed without persistence. */ }
 
   document.getElementById('version-menu-value').textContent = APP_VERSION;

@@ -49,6 +49,7 @@
     <div class="menu-sep"></div>
     <button data-cmd="toggle-vtabs"   role="menuitem"><span id="toggle-vtabs-label">Vertical Tabs</span><kbd>Ctrl+B</kbd></button>
     <button data-cmd="toggle-scroll-sync" role="menuitem"><span id="toggle-scroll-sync-label">Sync Scrolling</span></button>
+    <button data-cmd="toggle-outline" role="menuitem"><span id="toggle-outline-label">Outline</span></button>
     <button data-cmd="toggle-focus"   role="menuitem"><span id="toggle-focus-label">Focus Mode</span></button>
     <button data-cmd="toggle-theme"   role="menuitem"><span id="toggle-theme-label">Dark Mode</span><kbd>Ctrl+D</kbd></button>
     <div class="menu-sep"></div>
@@ -57,6 +58,13 @@
     <button data-cmd="show-version" role="menuitem"><span>Version</span><span id="version-menu-value" class="menu-value"></span></button>
     </div>
   </div>
+
+  <aside id="outline" aria-label="Document outline">
+    <div id="outline-inner">
+      <div id="outline-header"><span>Outline</span></div>
+      <ul id="outline-list"></ul>
+    </div>
+  </aside>
 
   <div id="workspace">
     <aside id="vtabs-column" aria-label="Open tabs">
