@@ -4,24 +4,42 @@ A clean markdown editor that runs directly in your browser. Delivered as a stati
 
 ## Features
 
-- **Real save-to-same-file** via the File System Access API (Chrome / Edge).
+### Writing
 - **Multi-tab editing** — open many files, orange dirty-tab pip on the left edge, safe-close prompts.
-- **Vertical or horizontal tab strip** — toggle any time via **Ctrl+B**.
+- **Vertical or horizontal tab strip** — toggle any time via `Ctrl+B`.
+- **Inline-rendered editor** — headings grow, bold is bold, code gets a pill, syntax markers fade.
+- **Find & Replace** — `Alt+F` / `Alt+R` open CodeMirror's search dialogs.
+- **Focus mode** — dims every paragraph but the one under the cursor.
+- **Word count & reading time** — live in the status bar; switches to selection stats (`A of B words · A' of B' chars selected`) when text is highlighted.
+- **Font zoom** — `Alt++` / `Alt+-` / `Alt+0`, persisted across sessions.
+- **Drag-and-drop / clipboard-paste images** — drop a file or `Ctrl+V` an image → embedded as a data URI at the cursor.
+
+### Rendering
 - **Live preview** — CommonMark + GFM + extended syntax rendered as you type. Full coverage of the [Markdown Guide cheat sheet](https://www.markdownguide.org/cheat-sheet/): headings, bold/italic, strikethrough, links, images, tables, fenced code, blockquotes, task lists, footnotes, definition lists, heading IDs, emoji shortcodes, highlight, subscript, superscript, and auto-linked bare URLs.
 - **Syntax-highlighted code blocks** — [highlight.js](https://highlightjs.org/) colours fenced code in over 190 languages; theme flips with dark mode.
 - **Math (KaTeX)** — inline `$E = mc^2$` and block `$$…$$` render as real equations.
-- **Mermaid diagrams** — flowcharts, sequence, ER, and more from ` ```mermaid ` blocks.
-- **Auto-save + session restore** — every keystroke goes to IndexedDB; tabs come back on next visit (file handles included, subject to browser re-permission).
-- **Scroll sync** — scroll the editor and the preview follows, and vice-versa.
-- **Font zoom** — `Alt++` / `Alt+-` / `Alt+0`, persisted.
-- **Drag-and-drop images** — drop a PNG/JPEG onto the editor to embed as a data URI.
-- **Inline-rendered editor** — headings grow, bold is bold, code gets a pill, syntax markers fade.
-- **Recent files** — the last 5 previously-opened files remembered across sessions.
-- **HTML / PDF export** — standalone HTML, or PDF via a hidden print iframe (no popup tab).
-- **Help panel** — a read-only cheat-sheet tab toggleable from the menu or **Alt+H**.
+- **Mermaid diagrams** — flowcharts, sequence, ER, gantt, and more from ` ```mermaid ` blocks.
+- **Scroll sync** — scroll the editor and the preview follows (and vice-versa); toggleable in the menu.
 - **Three view modes** — editor only, split, preview only.
-- **Dark mode** — persisted in `localStorage`.
-- **Themed confirm dialogs** — no native OS dialog stuck in light mode.
+
+### Navigation
+- **Command palette** — `Ctrl+Shift+P` opens a searchable list of every command. Type to filter, arrow keys to move, Enter to run. Menus mostly exist as a discovery hint.
+- **Outline sidebar** — a pinned right column showing every heading in the current doc; click to jump.
+- **Recent files** — the last 5 previously-opened files remembered across sessions.
+- **Slide-in menu panel** — a pinned left column (Outlook-style) with the stateful toggles and recent-files list.
+
+### File I/O
+- **Real save-to-same-file** via the File System Access API (Chrome / Edge / Chromium).
+- **HTML export** — standalone `.html` with inlined styles.
+- **Customisable PDF export** — pick page size (A4 / Letter / Legal / A3 / A5), orientation, margins, optional cover page (title / subtitle / author / date), and optional auto-generated table of contents. Prints via a hidden iframe — no popup tab.
+- **Auto-save + session restore** — every keystroke goes to IndexedDB; tabs come back on next visit (file handles included, subject to browser re-permission).
+
+### Reference & appearance
+- **Cheat sheet modal** — compact three-column reference for every supported syntax.
+- **Help panel** — a read-only cheat-sheet tab toggleable from the menu or `Alt+H`.
+- **Dark mode** — persisted; switches highlight.js theme and re-inits Mermaid.
+- **Themed confirm and file dialogs** — no OS dialog stuck in light mode.
+- **Custom app icon and slide-in animations** — Outlook-style pinned panels.
 
 ## Browser support
 
@@ -29,6 +47,8 @@ The File System Access API is what makes real file save/open work. Supported in:
 
 - Chrome / Edge / Opera / Brave (any Chromium-based browser)
 - **Not** supported in Firefox or Safari — those fall back to upload/download flow (still fully usable, just less convenient).
+
+Clipboard-image paste and drag-and-drop image work everywhere modern.
 
 ## Run locally
 
@@ -46,23 +66,23 @@ Push to `main`, enable GitHub Pages with source = "Deploy from a branch" pointin
 
 ## Keyboard shortcuts
 
-| Action                       | Shortcut             |
-| ---------------------------- | -------------------- |
-| Command palette              | `Ctrl+Shift+P`       |
-| New tab                      | `Alt+N`              |
-| Open file                    | `Ctrl+O`             |
-| Save                         | `Ctrl+S`             |
-| Save As                      | `Ctrl+Shift+S`       |
-| Close tab                    | `Alt+W`              |
-| Find in editor               | `Alt+F`              |
-| Replace in editor            | `Alt+R`              |
-| Vertical tabs                | `Ctrl+B`             |
-| Help panel                   | `Alt+H`              |
+| Action                       | Shortcut                    |
+| ---------------------------- | --------------------------- |
+| Command palette              | `Ctrl+Shift+P`              |
+| New tab                      | `Alt+N`                     |
+| Open file                    | `Ctrl+O`                    |
+| Save                         | `Ctrl+S`                    |
+| Save As                      | `Ctrl+Shift+S`              |
+| Close tab                    | `Alt+W`                     |
+| Find in editor               | `Alt+F`                     |
+| Replace in editor            | `Alt+R`                     |
+| Vertical tabs                | `Ctrl+B`                    |
+| Help panel                   | `Alt+H`                     |
 | Zoom in / out / reset        | `Alt++` / `Alt+-` / `Alt+0` |
-| Editor / Split / Preview     | `Ctrl+1` / `2` / `3` |
-| Toggle dark mode             | `Ctrl+D`             |
+| Editor / Split / Preview     | `Ctrl+1` / `2` / `3`        |
+| Toggle dark mode             | `Ctrl+D`                    |
 
-`Alt+N` and `Alt+W` are used for new / close tab because Chrome and Edge reserve `Ctrl+N`, `Ctrl+T`, and `Ctrl+W` at the browser level and web pages can't override them.
+`Alt+*` is used for the shortcuts Chrome / Edge reserve at the browser level (`Ctrl+N`, `Ctrl+T`, `Ctrl+W`, `Ctrl+F`) since web pages can't override those.
 
 ## Tech stack
 
@@ -72,15 +92,15 @@ Push to `main`, enable GitHub Pages with source = "Deploy from a branch" pointin
 - [highlight.js](https://highlightjs.org/) for fenced-code syntax colouring.
 - [KaTeX](https://katex.org/) for math typesetting.
 - [Mermaid](https://mermaid.js.org/) for text-defined diagrams.
-- File System Access API + IndexedDB for persistent state (recent files, view mode, vertical-tabs preference).
+- File System Access API + IndexedDB for persistent state (recent files, view mode, sync-scrolling / vertical-tabs / focus-mode / outline preferences, zoom level, open tabs).
 
 ## Project layout
 
 ```
 markdown-editor-web/
-├── index.html       # Layout: top bar, menu, vertical-tabs column, editor, preview, dialog
-├── styles.css       # Light + dark themes, inline-rendered token styling, print CSS
-├── app.js           # Tabs, editor, preview, FSA I/O, IndexedDB, export
+├── index.html       # Layout: menu panel, tab bar, editor, preview, outline, dialogs, palette
+├── styles.css       # Light + dark themes, inline-rendered token styling, print CSS, modal styles
+├── app.js           # Tabs, editor, preview, FSA I/O, IndexedDB, palette, outline, export, dialogs
 ├── assets/
 │   ├── icon.svg
 │   └── favicon.png
