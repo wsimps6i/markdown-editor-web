@@ -28,9 +28,11 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
 
   --tab-bar-h: 38px;
+  --toolbar-h: 0px;
   --status-bar-h: 24px;
   --vtabs-w: 200px;
 }
+body.toolbar-on { --toolbar-h: 36px; }
 
 body.theme-dark {
   --bg: #1e1e1e;
@@ -71,9 +73,9 @@ html, body {
 body {
   display: grid;
   grid-template-columns: 0px 1fr 0px;
-  grid-template-rows: var(--tab-bar-h) 1fr var(--status-bar-h);
+  grid-template-rows: var(--tab-bar-h) var(--toolbar-h) 1fr var(--status-bar-h);
   height: 100vh;
-  transition: grid-template-columns 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: grid-template-columns 0.22s cubic-bezier(0.4, 0, 0.2, 1), grid-template-rows 0.15s ease;
 }
 body.menu-open             { grid-template-columns: 280px 1fr 0px; }
 body.outline-on            { grid-template-columns: 0px 1fr 240px; }
@@ -83,8 +85,9 @@ body.menu-open.outline-on  { grid-template-columns: 280px 1fr 240px; }
    elements (dialogs, palette, banner) are outside grid flow. */
 #app-menu   { grid-column: 1; grid-row: 1 / -1; }
 #tab-bar    { grid-column: 2; grid-row: 1; }
-#workspace  { grid-column: 2; grid-row: 2; }
-#status-bar { grid-column: 2; grid-row: 3; }
+#toolbar    { grid-column: 2; grid-row: 2; overflow: hidden; }
+#workspace  { grid-column: 2; grid-row: 3; }
+#status-bar { grid-column: 2; grid-row: 4; }
 #outline    { grid-column: 3; grid-row: 1 / -1; }
 
 /* ---------- Tab bar ---------- */
@@ -675,6 +678,52 @@ body:not(.outline-on) #outline { border-left: none; }
   text-align: center;
   color: var(--fg-muted);
   font-size: 12px;
+}
+
+/* ---------- Formatting toolbar ---------- */
+#toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 0 8px;
+  background: var(--bg-soft);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+#toolbar::-webkit-scrollbar { display: none; }
+
+#toolbar button {
+  min-width: 28px;
+  height: 26px;
+  padding: 0 6px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--fg-soft);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+#toolbar button:hover  { background: var(--bg-hover); color: var(--fg); }
+#toolbar button:active { background: var(--accent-soft); color: var(--accent); }
+#toolbar button b, #toolbar button i, #toolbar button code, #toolbar button span { display: inline-block; }
+#toolbar button svg { display: block; }
+
+.tb-sep {
+  display: inline-block;
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 4px;
+  flex-shrink: 0;
 }
 
 /* ---------- Focus mode (dim non-active paragraph) ---------- */

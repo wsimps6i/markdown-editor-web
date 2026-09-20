@@ -280,6 +280,128 @@ editor.on('cursorActivity', () => {
   updateFocusHighlight();
 });
 
+/* ---------- Formatting toolbar ---------- */
+function tbWrap(before, after) {
+  const sel = editor.getSelection();
+  if (sel) {
+    editor.replaceSelection(before + sel + after, 'around');
+  } else {
+    const c = editor.getCursor();
+    editor.replaceSelection(before + after);
+    editor.setCursor({ line: c.line, ch: c.ch + before.length });
+  }
+  editor.focus();
+}
+function tbLinePrefix(prefix) {
+  const from = editor.getCursor('from');
+  const to = editor.getCursor('to');
+  editor.operation(() => {
+    for (let line = from.line; line <= to.line; line++) {
+      const current = editor.getLine(line);
+      // Toggle: strip if already prefixed, add otherwise.
+      if (current.startsWith(prefix)) {
+        editor.replaceRange('', { line, ch: 0 }, { line, ch: prefix.length });
+      } else if (prefix.startsWith('#')) {
+        // Headings replace each other rather than stacking (### h → # h with the H1 button)
+        const stripped = current.replace(/^#{1,6}\s+/, '');
+        editor.replaceRange(prefix + stripped, { line, ch: 0 }, { line, ch: current.length });
+      } else {
+        editor.replaceRange(prefix, { line, ch: 0 });
+      }
+    }
+  });
+  editor.focus();
+}
+function tbInsertBlock(text, selectStart, selectEnd) {
+  const c = editor.getCursor();
+  editor.replaceSelection(text);
+  if (selectStart != null) {
+    editor.setSelection(
+      { line: c.line, ch: c.ch + selectStart },
+      { line: c.line, ch: c.ch + selectEnd }
+    );
+  }
+  editor.focus();
+}
+function tbInsertLink()  {
+  const sel = editor.getSelection() || 'text';
+  const before = '[', mid = '](', after = ')', placeholder = 'url';
+  editor.replaceSelection(before + sel + mid + placeholder + after);
+  const c = editor.getCursor();
+  editor.setSelection(
+    { line: c.line, ch: c.ch - placeholder.length - 1 },
+    { line: c.line, ch: c.ch - 1 }
+  );
+  editor.focus();
+}
+function tbInsertImage() {
+  const sel = editor.getSelection() || 'alt';
+  const placeholder = 'url';
+  editor.replaceSelection('![' + sel + '](' + placeholder + ')');
+  const c = editor.getCursor();
+  editor.setSelection(
+    { line: c.line, ch: c.ch - placeholder.length - 1 },
+    { line: c.line, ch: c.ch - 1 }
+  );
+  editor.focus();
+}
+function tbInsertTable() {
+  const snippet = '\n| Column 1 | Column 2 |\n| -------- | -------- |\n| cell 1   | cell 2   |\n';
+  editor.replaceSelection(snippet);
+  editor.focus();
+}
+function tbInsertCodeblock() {
+  const sel = editor.getSelection();
+  if (sel) {
+    editor.replaceSelection('```\n' + sel + '\n```\n');
+  } else {
+    const c = editor.getCursor();
+    editor.replaceSelection('```\n\n```\n');
+    editor.setCursor({ line: c.line + 1, ch: 0 });
+  }
+  editor.focus();
+}
+const TOOLBAR_ACTIONS = {
+  bold:      () => tbWrap('**', '**'),
+  italic:    () => tbWrap('*', '*'),
+  strike:    () => tbWrap('~~', '~~'),
+  highlight: () => tbWrap('==', '=='),
+  code:      () => tbWrap('`', '`'),
+  h1:        () => tbLinePrefix('# '),
+  h2:        () => tbLinePrefix('## '),
+  h3:        () => tbLinePrefix('### '),
+  ul:        () => tbLinePrefix('- '),
+  ol:        () => tbLinePrefix('1. '),
+  task:      () => tbLinePrefix('- [ ] '),
+  quote:     () => tbLinePrefix('> '),
+  codeblock: () => tbInsertCodeblock(),
+  link:      () => tbInsertLink(),
+  image:     () => tbInsertImage(),
+  table:     () => tbInsertTable(),
+  hr:        () => tbInsertBlock('\n---\n\n'),
+  undo:      () => { editor.undo(); editor.focus(); },
+  redo:      () => { editor.redo(); editor.focus(); }
+};
+document.getElementById('toolbar').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const fn = TOOLBAR_ACTIONS[btn.dataset.action];
+  if (fn) fn();
+});
+
+let toolbarOn = true;
+async function toggleToolbar() {
+  toolbarOn = !toolbarOn;
+  document.body.classList.toggle('toolbar-on', toolbarOn);
+  refreshToolbarMenuLabel();
+  requestAnimationFrame(() => editor.refresh());
+  await dbSet('kv', 'toolbar', toolbarOn);
+}
+function refreshToolbarMenuLabel() {
+  const el = document.getElementById('toggle-toolbar-label');
+  if (el) el.textContent = toolbarOn ? '✓ Toolbar' : 'Toolbar';
+}
+
 /* ---------- Outline panel ---------- */
 const outlineListEl = document.getElementById('outline-list');
 let outlineOn = false;
@@ -1362,6 +1484,7 @@ const COMMANDS = [
   { id: 'toggle-vtabs',      label: 'Toggle Vertical Tabs',   shortcut: 'Ctrl+B' },
   { id: 'toggle-scroll-sync',label: 'Toggle Sync Scrolling' },
   { id: 'toggle-outline',    label: 'Toggle Outline' },
+  { id: 'toggle-toolbar',    label: 'Toggle Formatting Toolbar' },
   { id: 'toggle-focus',      label: 'Toggle Focus Mode' },
   { id: 'toggle-theme',      label: 'Toggle Dark Mode',       shortcut: 'Ctrl+D' },
   { id: 'show-cheatsheet',   label: 'Show Cheat Sheet' },
@@ -1481,6 +1604,7 @@ async function dispatchCommand(cmd) {
     case 'toggle-vtabs':   await toggleVerticalTabs(); break;
     case 'toggle-scroll-sync': await toggleScrollSync(); break;
     case 'toggle-outline': await toggleOutline(); break;
+    case 'toggle-toolbar': await toggleToolbar(); break;
     case 'toggle-focus':   await toggleFocusMode(); break;
     case 'toggle-theme':   toggleTheme(); break;
     case 'show-cheatsheet': openCheatsheet(); break;
@@ -1576,6 +1700,11 @@ async function bootstrap() {
       document.body.classList.add('outline-on');
     }
     refreshOutlineMenuLabel();
+    const savedToolbar = await dbGet('kv', 'toolbar');
+    // Default: on for new users; only turn off if the user explicitly hid it.
+    toolbarOn = savedToolbar !== false;
+    document.body.classList.toggle('toolbar-on', toolbarOn);
+    refreshToolbarMenuLabel();
   } catch { /* IndexedDB unavailable — private browsing? — proceed without persistence. */ }
 
   document.getElementById('version-menu-value').textContent = APP_VERSION;

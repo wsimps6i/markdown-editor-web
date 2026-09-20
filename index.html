@@ -47,6 +47,7 @@
     <div class="menu-heading">Recent Files</div>
     <div id="recent-menu"><button class="disabled" disabled>(none)</button></div>
     <div class="menu-sep"></div>
+    <button data-cmd="toggle-toolbar" role="menuitem"><span id="toggle-toolbar-label">Toolbar</span></button>
     <button data-cmd="toggle-vtabs"   role="menuitem"><span id="toggle-vtabs-label">Vertical Tabs</span><kbd>Ctrl+B</kbd></button>
     <button data-cmd="toggle-scroll-sync" role="menuitem"><span id="toggle-scroll-sync-label">Sync Scrolling</span></button>
     <button data-cmd="toggle-outline" role="menuitem"><span id="toggle-outline-label">Outline</span></button>
@@ -65,6 +66,55 @@
       <ul id="outline-list"></ul>
     </div>
   </aside>
+
+  <div id="toolbar" role="toolbar" aria-label="Formatting toolbar">
+    <button data-action="bold"       title="Bold"><b>B</b></button>
+    <button data-action="italic"     title="Italic"><i>I</i></button>
+    <button data-action="strike"     title="Strikethrough"><span style="text-decoration:line-through">S</span></button>
+    <button data-action="highlight"  title="Highlight"><span style="background:#fff59d;padding:0 2px;border-radius:2px;color:#333">H</span></button>
+    <button data-action="code"       title="Inline code"><code style="background:none;padding:0;border:none;font-size:11px">&lt;/&gt;</code></button>
+    <span class="tb-sep"></span>
+    <button data-action="h1"         title="Heading 1">H1</button>
+    <button data-action="h2"         title="Heading 2">H2</button>
+    <button data-action="h3"         title="Heading 3">H3</button>
+    <span class="tb-sep"></span>
+    <button data-action="ul"         title="Bulleted list" aria-label="Bulleted list">
+      <svg viewBox="0 0 16 16" width="14" height="14"><circle cx="2.5" cy="4" r="1.2" fill="currentColor"/><circle cx="2.5" cy="8" r="1.2" fill="currentColor"/><circle cx="2.5" cy="12" r="1.2" fill="currentColor"/><rect x="6" y="3.4" width="9" height="1.2" fill="currentColor"/><rect x="6" y="7.4" width="9" height="1.2" fill="currentColor"/><rect x="6" y="11.4" width="9" height="1.2" fill="currentColor"/></svg>
+    </button>
+    <button data-action="ol"         title="Numbered list" aria-label="Numbered list">
+      <svg viewBox="0 0 16 16" width="14" height="14"><text x="0" y="5.5" font-size="4.5" font-family="sans-serif" font-weight="600" fill="currentColor">1.</text><text x="0" y="9.5" font-size="4.5" font-family="sans-serif" font-weight="600" fill="currentColor">2.</text><text x="0" y="13.5" font-size="4.5" font-family="sans-serif" font-weight="600" fill="currentColor">3.</text><rect x="6" y="3.4" width="9" height="1.2" fill="currentColor"/><rect x="6" y="7.4" width="9" height="1.2" fill="currentColor"/><rect x="6" y="11.4" width="9" height="1.2" fill="currentColor"/></svg>
+    </button>
+    <button data-action="task"       title="Task list" aria-label="Task list">
+      <svg viewBox="0 0 16 16" width="14" height="14"><rect x="1" y="2.5" width="4" height="4" fill="none" stroke="currentColor" stroke-width="1"/><rect x="1" y="10.5" width="4" height="4" fill="currentColor"/><path d="M1.7 12.5l1 1 2-2" stroke="var(--bg-panel,white)" stroke-width="1" fill="none"/><rect x="6.5" y="3.4" width="8.5" height="1.2" fill="currentColor"/><rect x="6.5" y="11.4" width="8.5" height="1.2" fill="currentColor"/></svg>
+    </button>
+    <span class="tb-sep"></span>
+    <button data-action="quote"      title="Blockquote" aria-label="Blockquote">
+      <svg viewBox="0 0 16 16" width="14" height="14"><rect x="2" y="2" width="1.6" height="12" fill="currentColor"/><rect x="6" y="3.4" width="9" height="1.2" fill="currentColor"/><rect x="6" y="7.4" width="9" height="1.2" fill="currentColor"/><rect x="6" y="11.4" width="6" height="1.2" fill="currentColor"/></svg>
+    </button>
+    <button data-action="codeblock"  title="Code block" aria-label="Code block">
+      <svg viewBox="0 0 16 16" width="14" height="14"><path d="M5 4l-3 4 3 4M11 4l3 4-3 4" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <span class="tb-sep"></span>
+    <button data-action="link"       title="Link" aria-label="Link">
+      <svg viewBox="0 0 16 16" width="14" height="14"><path d="M6 10a3 3 0 0 1 0-4l2-2a3 3 0 0 1 4 4M10 6a3 3 0 0 1 0 4l-2 2a3 3 0 0 1-4-4" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>
+    </button>
+    <button data-action="image"      title="Image" aria-label="Image">
+      <svg viewBox="0 0 16 16" width="14" height="14"><rect x="1.5" y="2.5" width="13" height="11" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="5" cy="6" r="1.2" fill="currentColor"/><path d="M2 12l3.5-4 3 3 3-2.5 3 2.5V13H2z" fill="currentColor"/></svg>
+    </button>
+    <button data-action="table"      title="Table" aria-label="Table">
+      <svg viewBox="0 0 16 16" width="14" height="14"><rect x="1.5" y="2.5" width="13" height="11" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M1.5 6h13M1.5 10h13M8 2.5v11" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+    </button>
+    <button data-action="hr"         title="Horizontal rule" aria-label="Horizontal rule">
+      <svg viewBox="0 0 16 16" width="14" height="14"><rect x="1" y="7" width="14" height="2" fill="currentColor"/></svg>
+    </button>
+    <span class="tb-sep"></span>
+    <button data-action="undo"       title="Undo (Ctrl+Z)" aria-label="Undo">
+      <svg viewBox="0 0 16 16" width="14" height="14"><path d="M3 8h7a3 3 0 0 1 0 6H6" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M6 5L3 8l3 3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button data-action="redo"       title="Redo (Ctrl+Y)" aria-label="Redo">
+      <svg viewBox="0 0 16 16" width="14" height="14"><path d="M13 8H6a3 3 0 0 0 0 6h4" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M10 5l3 3-3 3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
 
   <div id="workspace">
     <aside id="vtabs-column" aria-label="Open tabs">
