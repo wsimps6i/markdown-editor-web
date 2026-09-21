@@ -362,6 +362,14 @@ function openFindBar() {
   runFind(prefill);
   findInputEl.focus();
   findInputEl.select();
+  // Defensive: some browsers (Edge in particular) autofill/restore the input's
+  // value AFTER focus fires. Re-clear on the next tick if that happened.
+  setTimeout(() => {
+    if (findInputEl.value !== prefill) {
+      findInputEl.value = prefill;
+      runFind(prefill);
+    }
+  }, 20);
 }
 function closeFindBar() {
   clearFindHighlights();
