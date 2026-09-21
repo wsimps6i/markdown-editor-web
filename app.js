@@ -540,6 +540,7 @@ const TOOLBAR_ACTIONS = {
   table:     () => tbInsertTable(),
   hr:        () => tbInsertBlock('\n---\n\n'),
   findbar:   () => openFindBar(),
+  replacebar:() => openReplaceBar(),
   undo:      () => { editor.undo(); editor.focus(); },
   redo:      () => { editor.redo(); editor.focus(); }
 };
