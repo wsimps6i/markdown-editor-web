@@ -8,7 +8,7 @@ A clean markdown editor that runs directly in your browser. Delivered as a stati
 - **Multi-tab editing** — open many files, orange dirty-tab pip on the left edge, safe-close prompts.
 - **Vertical or horizontal tab strip** — toggle any time via `Ctrl+B`.
 - **Inline-rendered editor** — headings grow, bold is bold, code gets a pill, syntax markers fade.
-- **Find & Replace** — `Alt+F` / `Alt+R` open CodeMirror's search dialogs.
+- **Find & Replace** — an inline bar centred over the editor pane. `Alt+F` opens Find (single row: query, match count, prev/next, close); `Alt+R` opens Find + Replace (adds a second row with the replacement text and **Replace** / **All** buttons). Matches are highlighted in the editor as you type. Enter in the find input jumps to the next match (Shift+Enter for previous). Enter in the replace input replaces the current match then advances; Shift+Enter replaces all in one undo step. Esc closes the bar. Also available from the toolbar (magnifier and arrow-swap icons).
 - **Focus mode** — dims every paragraph but the one under the cursor.
 - **Word count & reading time** — live in the status bar; switches to selection stats (`A of B words · A' of B' chars selected`) when text is highlighted.
 - **Font zoom** — `Alt++` / `Alt+-` / `Alt+0`, persisted across sessions.
@@ -75,7 +75,7 @@ Push to `main`, enable GitHub Pages with source = "Deploy from a branch" pointin
 | Save As                      | `Ctrl+Shift+S`              |
 | Close tab                    | `Alt+W`                     |
 | Find in editor               | `Alt+F`                     |
-| Replace in editor            | `Alt+R`                     |
+| Find & Replace               | `Alt+R`                     |
 | Vertical tabs                | `Ctrl+B`                    |
 | Help panel                   | `Alt+H`                     |
 | Zoom in / out / reset        | `Alt++` / `Alt+-` / `Alt+0` |
