@@ -475,7 +475,11 @@ body.tabs-vertical #vtabs-column { display: flex; }
 #find-bar {
   position: absolute;
   top: 8px;
-  right: 20px;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  width: fit-content;
   z-index: 400;
   display: flex;
   align-items: center;
