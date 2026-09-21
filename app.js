@@ -376,6 +376,11 @@ function closeFindBar() {
   findInputEl.value = '';
   updateFindCount();
   findBarEl.hidden = true;
+  // Collapse the leftover match selection to a cursor — otherwise the next
+  // openFindBar() picks it up as the prefill and looks like the search
+  // "remembered" itself.
+  const to = editor.getCursor('to');
+  editor.setSelection(to, to);
   editor.focus();
 }
 
