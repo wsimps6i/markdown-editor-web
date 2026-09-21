@@ -365,6 +365,7 @@ function openFindBar() {
 }
 function closeFindBar() {
   clearFindHighlights();
+  findInputEl.value = '';
   updateFindCount();
   findBarEl.hidden = true;
   editor.focus();
