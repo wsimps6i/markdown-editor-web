@@ -26,7 +26,8 @@ A clean markdown editor that runs directly in your browser. Delivered as a stati
 - **Command palette** — `Ctrl+Shift+P` opens a searchable list of every command. Type to filter, arrow keys to move, Enter to run. Menus mostly exist as a discovery hint.
 - **Outline sidebar** — a pinned right column showing every heading in the current doc; click to jump.
 - **Recent files** — the last 5 previously-opened files remembered across sessions.
-- **Slide-in menu panel** — a pinned left column (Outlook-style) with the stateful toggles and recent-files list.
+- **Slide-in menu panel** — a pinned left column (Outlook-style) with a **File** section (New Tab, Open File…, Save, Save As…), the recent-files list, and the stateful toggles.
+- **Formatting toolbar** — a single row above the editor with the file actions (Open / Save) on the left, then formatting (bold, italic, strike, highlight, inline code), headings, lists (bulleted / numbered / task), blockquote, code block, link / image / table / horizontal rule, find, find & replace, undo / redo. Toggleable from the menu.
 
 ### File I/O
 - **Real save-to-same-file** via the File System Access API (Chrome / Edge / Chromium).
