@@ -357,10 +357,9 @@ function updateFindCount() {
 function openFindBar() {
   findBarEl.hidden = false;
   const sel = editor.getSelection();
-  if (sel && sel.length > 0 && sel.length < 200 && !/\n/.test(sel)) {
-    findInputEl.value = sel;
-  }
-  runFind(findInputEl.value);
+  const prefill = (sel && sel.length > 0 && sel.length < 200 && !/\n/.test(sel)) ? sel : '';
+  findInputEl.value = prefill;
+  runFind(prefill);
   findInputEl.focus();
   findInputEl.select();
 }
