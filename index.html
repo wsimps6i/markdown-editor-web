@@ -44,6 +44,11 @@
     </div>
     <button data-cmd="command-palette" role="menuitem"><span>Command Palette…</span><kbd>Ctrl+Shift+P</kbd></button>
     <div class="menu-sep"></div>
+    <button data-cmd="new-tab" role="menuitem"><span>New Tab</span><kbd>Alt+N</kbd></button>
+    <button data-cmd="open"    role="menuitem"><span>Open File…</span><kbd>Ctrl+O</kbd></button>
+    <button data-cmd="save"    role="menuitem"><span>Save</span><kbd>Ctrl+S</kbd></button>
+    <button data-cmd="save-as" role="menuitem"><span>Save As…</span><kbd>Ctrl+Shift+S</kbd></button>
+    <div class="menu-sep"></div>
     <div class="menu-heading">Recent Files</div>
     <div id="recent-menu"><button class="disabled" disabled>(none)</button></div>
     <div class="menu-sep"></div>
@@ -68,6 +73,13 @@
   </aside>
 
   <div id="toolbar" role="toolbar" aria-label="Formatting toolbar">
+    <button data-action="open"       title="Open file (Ctrl+O)" aria-label="Open file">
+      <svg viewBox="0 0 16 16" width="14" height="14"><path d="M1.5 4h4.2l1.2 1.5H14.5v7.5h-13z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+    </button>
+    <button data-action="save"       title="Save (Ctrl+S)" aria-label="Save">
+      <svg viewBox="0 0 16 16" width="14" height="14"><path d="M2 2h9.2l2.8 2.8V14H2z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><rect x="4.5" y="2" width="6" height="4" fill="currentColor"/><rect x="4.5" y="9" width="7" height="4.5" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+    </button>
+    <span class="tb-sep"></span>
     <button data-action="bold"       title="Bold"><b>B</b></button>
     <button data-action="italic"     title="Italic"><i>I</i></button>
     <button data-action="strike"     title="Strikethrough"><span style="text-decoration:line-through">S</span></button>

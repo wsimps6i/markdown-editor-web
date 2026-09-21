@@ -541,6 +541,8 @@ const TOOLBAR_ACTIONS = {
   hr:        () => tbInsertBlock('\n---\n\n'),
   findbar:   () => openFindBar(),
   replacebar:() => openReplaceBar(),
+  open:      () => dispatchCommand('open'),
+  save:      () => dispatchCommand('save'),
   undo:      () => { editor.undo(); editor.focus(); },
   redo:      () => { editor.redo(); editor.focus(); }
 };
