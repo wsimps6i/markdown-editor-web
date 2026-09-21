@@ -281,9 +281,12 @@ editor.on('cursorActivity', () => {
 });
 
 /* ---------- In-editor find bar ---------- */
-const findBarEl   = document.getElementById('find-bar');
-const findInputEl = document.getElementById('find-input');
-const findCountEl = document.getElementById('find-count');
+const findBarEl      = document.getElementById('find-bar');
+const findInputEl    = document.getElementById('find-input');
+const findCountEl    = document.getElementById('find-count');
+const replaceInputEl = document.getElementById('replace-input');
+const replaceOneBtn  = document.getElementById('replace-one');
+const replaceAllBtn  = document.getElementById('replace-all');
 const findState = { markers: [], matches: [], currentIndex: -1 };
 
 function clearFindHighlights() {
@@ -355,6 +358,14 @@ function updateFindCount() {
 }
 
 function openFindBar() {
+  findBarEl.classList.remove('replace-mode');
+  _openBarCommon();
+}
+function openReplaceBar() {
+  findBarEl.classList.add('replace-mode');
+  _openBarCommon();
+}
+function _openBarCommon() {
   findBarEl.hidden = false;
   const sel = editor.getSelection();
   const prefill = (sel && sel.length > 0 && sel.length < 200 && !/\n/.test(sel)) ? sel : '';
@@ -374,8 +385,10 @@ function openFindBar() {
 function closeFindBar() {
   clearFindHighlights();
   findInputEl.value = '';
+  replaceInputEl.value = '';
   updateFindCount();
   findBarEl.hidden = true;
+  findBarEl.classList.remove('replace-mode');
   // Collapse the leftover match selection to a cursor — otherwise the next
   // openFindBar() picks it up as the prefill and looks like the search
   // "remembered" itself.
@@ -384,14 +397,48 @@ function closeFindBar() {
   editor.focus();
 }
 
+function replaceCurrentMatch() {
+  if (findState.matches.length === 0 || findState.currentIndex < 0) return;
+  const m = findState.matches[findState.currentIndex];
+  editor.replaceRange(replaceInputEl.value, m.from, m.to);
+  // Re-scan — replacement length may differ from the match, so cached
+  // positions are stale. runFind() re-focuses the first match at or after
+  // the cursor, which is naturally the next match after this one.
+  runFind(findInputEl.value);
+}
+function replaceAllMatches() {
+  if (findState.matches.length === 0) return;
+  const query = findInputEl.value;
+  const replacement = replaceInputEl.value;
+  // Walk in reverse so earlier match positions stay valid as we edit.
+  editor.operation(() => {
+    for (let i = findState.matches.length - 1; i >= 0; i--) {
+      const m = findState.matches[i];
+      editor.replaceRange(replacement, m.from, m.to);
+    }
+  });
+  runFind(query);
+}
+
 findInputEl.addEventListener('input', () => runFind(findInputEl.value));
 findInputEl.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { e.preventDefault(); e.shiftKey ? findPrevMatch() : findNextMatch(); }
   else if (e.key === 'Escape') { e.preventDefault(); closeFindBar(); }
 });
+replaceInputEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    e.shiftKey ? replaceAllMatches() : replaceCurrentMatch();
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    closeFindBar();
+  }
+});
 document.getElementById('find-next').addEventListener('click', findNextMatch);
 document.getElementById('find-prev').addEventListener('click', findPrevMatch);
 document.getElementById('find-close').addEventListener('click', closeFindBar);
+replaceOneBtn.addEventListener('click', replaceCurrentMatch);
+replaceAllBtn.addEventListener('click', replaceAllMatches);
 
 /* ---------- Formatting toolbar ---------- */
 function tbWrap(before, after) {
@@ -1728,7 +1775,7 @@ async function dispatchCommand(cmd) {
     case 'toggle-help':    await toggleHelp(); break;
     case 'show-version':   await showVersion(); break;
     case 'find':           openFindBar(); break;
-    case 'replace':        editor.execCommand('replace'); break;
+    case 'replace':        openReplaceBar(); break;
     case 'view-editor':    setViewMode('editor'); break;
     case 'view-split':     setViewMode('split'); break;
     case 'view-preview':   setViewMode('preview'); break;

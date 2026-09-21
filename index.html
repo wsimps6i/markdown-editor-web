@@ -132,14 +132,21 @@
       <textarea id="editor"></textarea>
       <div id="find-bar" hidden>
         <input id="find-input" type="search" placeholder="Find" aria-label="Find text" spellcheck="false" autocomplete="new-password" autocorrect="off" autocapitalize="off">
-        <span id="find-count" aria-live="polite"></span>
-        <button id="find-prev" title="Previous match (Shift+Enter)" aria-label="Previous match">
-          <svg viewBox="0 0 12 12" width="10" height="10"><path d="M2 8l4-4 4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <button id="find-next" title="Next match (Enter)" aria-label="Next match">
-          <svg viewBox="0 0 12 12" width="10" height="10"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <button id="find-close" title="Close (Esc)" aria-label="Close find">&times;</button>
+        <div class="find-actions">
+          <span id="find-count" aria-live="polite"></span>
+          <button id="find-prev" title="Previous match (Shift+Enter)" aria-label="Previous match">
+            <svg viewBox="0 0 12 12" width="10" height="10"><path d="M2 8l4-4 4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button id="find-next" title="Next match (Enter)" aria-label="Next match">
+            <svg viewBox="0 0 12 12" width="10" height="10"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button id="find-close" title="Close (Esc)" aria-label="Close find">&times;</button>
+        </div>
+        <input id="replace-input" type="text" placeholder="Replace with" aria-label="Replace with" spellcheck="false" autocomplete="new-password" autocorrect="off" autocapitalize="off">
+        <div class="replace-actions">
+          <button id="replace-one" class="text-btn" title="Replace current match (Enter)">Replace</button>
+          <button id="replace-all" class="text-btn" title="Replace all matches (Shift+Enter)">All</button>
+        </div>
       </div>
     </div>
     <div id="splitter" aria-hidden="true"></div>
