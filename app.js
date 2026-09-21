@@ -280,6 +280,106 @@ editor.on('cursorActivity', () => {
   updateFocusHighlight();
 });
 
+/* ---------- In-editor find bar ---------- */
+const findBarEl   = document.getElementById('find-bar');
+const findInputEl = document.getElementById('find-input');
+const findCountEl = document.getElementById('find-count');
+const findState = { markers: [], matches: [], currentIndex: -1 };
+
+function clearFindHighlights() {
+  findState.markers.forEach(m => m.clear());
+  findState.markers = [];
+  findState.matches = [];
+  findState.currentIndex = -1;
+}
+
+function runFind(query) {
+  clearFindHighlights();
+  if (!query) { updateFindCount(); return; }
+  const doc = editor.getValue();
+  const q = query.toLowerCase();
+  const docLower = doc.toLowerCase();
+  let idx = 0;
+  while ((idx = docLower.indexOf(q, idx)) !== -1) {
+    const from = editor.posFromIndex(idx);
+    const to   = editor.posFromIndex(idx + q.length);
+    findState.matches.push({ from, to });
+    findState.markers.push(editor.markText(from, to, { className: 'cm-find-match' }));
+    idx += Math.max(q.length, 1);
+  }
+  updateFindCount();
+  if (findState.matches.length === 0) return;
+
+  // Focus the first match at or after the current cursor, else wrap to 0.
+  const cursorIdx = editor.indexFromPos(editor.getCursor());
+  let target = 0;
+  for (let i = 0; i < findState.matches.length; i++) {
+    if (editor.indexFromPos(findState.matches[i].from) >= cursorIdx) { target = i; break; }
+  }
+  focusFindMatch(target);
+}
+
+function focusFindMatch(idx) {
+  if (findState.matches.length === 0) return;
+  // Demote the previous "current" marker back to plain
+  if (findState.currentIndex >= 0 && findState.markers[findState.currentIndex]) {
+    const m = findState.matches[findState.currentIndex];
+    findState.markers[findState.currentIndex].clear();
+    findState.markers[findState.currentIndex] = editor.markText(m.from, m.to, { className: 'cm-find-match' });
+  }
+  findState.currentIndex = idx;
+  const m = findState.matches[idx];
+  findState.markers[idx].clear();
+  findState.markers[idx] = editor.markText(m.from, m.to, { className: 'cm-find-match-current' });
+  editor.setSelection(m.from, m.to);
+  editor.scrollIntoView({ from: m.from, to: m.to }, 60);
+  updateFindCount();
+}
+
+function findNextMatch() {
+  if (findState.matches.length === 0) return;
+  focusFindMatch((findState.currentIndex + 1) % findState.matches.length);
+}
+function findPrevMatch() {
+  if (findState.matches.length === 0) return;
+  const n = findState.matches.length;
+  focusFindMatch((findState.currentIndex - 1 + n) % n);
+}
+
+function updateFindCount() {
+  const n = findState.matches.length;
+  if (findInputEl.value === '') { findCountEl.textContent = ''; findCountEl.classList.remove('none'); return; }
+  if (n === 0) { findCountEl.textContent = 'No results'; findCountEl.classList.add('none'); return; }
+  findCountEl.textContent = `${findState.currentIndex + 1} of ${n}`;
+  findCountEl.classList.remove('none');
+}
+
+function openFindBar() {
+  findBarEl.hidden = false;
+  const sel = editor.getSelection();
+  if (sel && sel.length > 0 && sel.length < 200 && !/\n/.test(sel)) {
+    findInputEl.value = sel;
+  }
+  runFind(findInputEl.value);
+  findInputEl.focus();
+  findInputEl.select();
+}
+function closeFindBar() {
+  clearFindHighlights();
+  updateFindCount();
+  findBarEl.hidden = true;
+  editor.focus();
+}
+
+findInputEl.addEventListener('input', () => runFind(findInputEl.value));
+findInputEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); e.shiftKey ? findPrevMatch() : findNextMatch(); }
+  else if (e.key === 'Escape') { e.preventDefault(); closeFindBar(); }
+});
+document.getElementById('find-next').addEventListener('click', findNextMatch);
+document.getElementById('find-prev').addEventListener('click', findPrevMatch);
+document.getElementById('find-close').addEventListener('click', closeFindBar);
+
 /* ---------- Formatting toolbar ---------- */
 function tbWrap(before, after) {
   const sel = editor.getSelection();
@@ -379,6 +479,7 @@ const TOOLBAR_ACTIONS = {
   image:     () => tbInsertImage(),
   table:     () => tbInsertTable(),
   hr:        () => tbInsertBlock('\n---\n\n'),
+  findbar:   () => openFindBar(),
   undo:      () => { editor.undo(); editor.focus(); },
   redo:      () => { editor.redo(); editor.focus(); }
 };
@@ -1613,7 +1714,7 @@ async function dispatchCommand(cmd) {
     case 'zoom-reset':     setZoom('reset'); break;
     case 'toggle-help':    await toggleHelp(); break;
     case 'show-version':   await showVersion(); break;
-    case 'find':           editor.execCommand('find'); break;
+    case 'find':           openFindBar(); break;
     case 'replace':        editor.execCommand('replace'); break;
     case 'view-editor':    setViewMode('editor'); break;
     case 'view-split':     setViewMode('split'); break;

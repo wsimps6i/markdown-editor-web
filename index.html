@@ -108,6 +108,10 @@
       <svg viewBox="0 0 16 16" width="14" height="14"><rect x="1" y="7" width="14" height="2" fill="currentColor"/></svg>
     </button>
     <span class="tb-sep"></span>
+    <button data-action="findbar"    title="Find in document (Alt+F)" aria-label="Find in document">
+      <svg viewBox="0 0 16 16" width="14" height="14"><circle cx="7" cy="7" r="4.2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10.2 10.2l3.3 3.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>
+    </button>
+    <span class="tb-sep"></span>
     <button data-action="undo"       title="Undo (Ctrl+Z)" aria-label="Undo">
       <svg viewBox="0 0 16 16" width="14" height="14"><path d="M3 8h7a3 3 0 0 1 0 6H6" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M6 5L3 8l3 3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
@@ -126,6 +130,17 @@
     </aside>
     <div id="editor-pane">
       <textarea id="editor"></textarea>
+      <div id="find-bar" hidden>
+        <input id="find-input" type="text" placeholder="Find" aria-label="Find text" spellcheck="false" autocomplete="off">
+        <span id="find-count" aria-live="polite"></span>
+        <button id="find-prev" title="Previous match (Shift+Enter)" aria-label="Previous match">
+          <svg viewBox="0 0 12 12" width="10" height="10"><path d="M2 8l4-4 4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button id="find-next" title="Next match (Enter)" aria-label="Next match">
+          <svg viewBox="0 0 12 12" width="10" height="10"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button id="find-close" title="Close (Esc)" aria-label="Close find">&times;</button>
+      </div>
     </div>
     <div id="splitter" aria-hidden="true"></div>
     <div id="preview-pane">
